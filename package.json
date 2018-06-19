@@ -1,0 +1,14 @@
+{
+  "name": "scraping",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "index.js",
+  "scripts": {
+    "test": "start"
+  },
+  "author": "tazaryoot",
+  "license": "MIT",
+  "dependencies": {
+    "needle": "^2.2.1"
+  }
+}
