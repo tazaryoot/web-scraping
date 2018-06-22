@@ -18,9 +18,9 @@ let results = {};
 
 perf.start();
 
-needle.defaults({
+/* needle.defaults({
   open_timeout: 50
-});
+}); */
 
 try {
   let queue = tress((url, callback) => {
@@ -43,9 +43,9 @@ try {
         if ($area.length) {
           let $aList = $area
             .find('a')
-            .filter(function () {
+            /* .filter(function () {
               return $(this).attr('href').indexOf('/investor') !== -1;
-            });
+            }) */;
 
           progressBar.start($aList.length, progressValue);
 
