@@ -5,10 +5,14 @@ const tress = require('tress');
 const cheerio = require('cheerio');
 const perf = require('execution-time')();
 const fs = require('fs');
+const _cliProgress = require('cli-progress');
 
 const urlCore = 'http://t02.gazprom.dev.design.ru';
 const url = `${urlCore}/map/`;
 /* const url = 'http://t02.gazprom.dev.design.ru/'; */
+
+const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
+let progressValue = 0;
 
 let results = {};
 
@@ -21,7 +25,7 @@ needle.defaults({
 try {
   let queue = tress((url, callback) => {
 
-    console.info('get url: ', url);
+    //console.info('get url: ', url);
 
     needle.get(url, (err, res) => {
 
@@ -37,12 +41,15 @@ try {
         const $area = $('#sitemap_cont');
 
         if ($area.length) {
-          $area
-          .find('a')
-          .filter(function () {
-            return $(this).attr('href').indexOf('/investor') !== -1;
-          })
-          .each(function () {
+          let $aList = $area
+            .find('a')
+            .filter(function () {
+              return $(this).attr('href').indexOf('/investor') !== -1;
+            });
+
+          progressBar.start($aList.length, progressValue);
+
+          $aList.each(function () {
             let link = $(this).attr('href');
 
             if (link.indexOf('http') === -1) {
@@ -85,6 +92,9 @@ try {
           });
         }
 
+        if (!$area.length) {
+          progressBar.update(++progressValue);
+        }
 
         callback();
       } catch (e) {
@@ -99,6 +109,7 @@ try {
   queue.drain = function() {
     writeResults();
 
+    progressBar.stop();
     let perfomance = perf.stop();
     console.warn('Executing time:', perfomance.verboseWords);
   };

@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
+    "cli-progress": "^2.0.0",
     "execution-time": "^1.2.0",
     "needle": "^2.2.1",
     "tress": "^1.1.3"
