@@ -43,9 +43,9 @@ try {
         if ($area.length) {
           let $aList = $area
             .find('a')
-            /* .filter(function () {
+            .filter(function () {
               return $(this).attr('href').indexOf('/investor') !== -1;
-            }) */;
+            });
 
           progressBar.start($aList.length, progressValue);
 
@@ -61,36 +61,26 @@ try {
         }
 
 
-        let $h3List = $('h3');
-        let $h4List = $('h4');
+        let $itemList = $('h3').add('h4');
 
-        if ($h3List.length || $h4List.length) {
+        if ($itemList.length) {
           results[url] = {};
         }
 
-        if ($h3List.length) {
-          results[url].h3 = [];
+        $itemList.each(function () {
+          const $element = $(this);
+          const tagName = $element.get(0).tagName.toLowerCase();
 
-          $h3List.each(function () {
-            var $h3 = $(this);
+          if (!results[url].hasOwnProperty(tagName)) {
+            results[url][tagName] = [];
+          }
 
-            results[url].h3.push({
-              text: $h3.text()
-            });
+          results[url][tagName].push({
+            text: $element.text(),
+            html: $element.html()
           });
-        }
 
-        if ($h4List.length) {
-          results[url].h4 = [];
-
-          $h4List.each(function () {
-            var $h4 = $(this);
-
-            results[url].h4.push({
-              text: $h4.text()
-            });
-          });
-        }
+        });
 
         if (!$area.length) {
           progressBar.update(++progressValue);
