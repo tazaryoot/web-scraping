@@ -8,7 +8,7 @@ const _cliProgress = require('cli-progress');
 const writeResults = require('./lib/write');
 const argv = require('yargs').argv;
 const scrapping = require(config.scrappingModulePath);
-
+const readline = require('readline');
 const urlCore = config.urlCore;
 const url = config.urlMap;
 
@@ -21,6 +21,23 @@ perf.start();
 /* needle.defaults({
   open_timeout: 50
 }); */
+/*TODO: обрабока прерывания*/
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+rl.on('SIGINT', () => {
+  rl.question('Are you sure you want to exit?\r\n', answer => {
+    rl.pause();
+    if (answer.match(/^y(es)?$/i)) {
+      writeResults();
+      rl.close();
+    } else {
+      rl.resume();
+    }
+  });
+});
 
 let selectorString = '';
 if (argv.selector) {
@@ -82,6 +99,7 @@ try {
     progressBar.stop();
     let perfomance = perf.stop();
     console.warn('Executing time:', perfomance.verboseWords);
+    rl.close();
   };
 
   queue.push(url);
