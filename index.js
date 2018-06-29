@@ -6,6 +6,7 @@ const cheerio = require('cheerio');
 const perf = require('execution-time')();
 const fs = require('fs');
 const _cliProgress = require('cli-progress');
+const Entities = require('html-entities').XmlEntities;
 
 const urlCore = 'http://t02.gazprom.dev.design.ru';
 const url = `${urlCore}/map/`;
@@ -13,6 +14,8 @@ const url = `${urlCore}/map/`;
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
 let progressValue = 0;
+
+const entities = new Entities();
 
 let results = {};
 
@@ -43,9 +46,9 @@ try {
         if ($area.length) {
           let $aList = $area
             .find('a')
-            .filter(function () {
+            /* .filter(function () {
               return $(this).attr('href').indexOf('/investor') !== -1;
-            });
+            }) */;
 
           progressBar.start($aList.length, progressValue);
 
@@ -69,7 +72,7 @@ try {
 
         $itemList.each(function () {
           const $element = $(this);
-          const tagName = $element.get(0).tagName.toLowerCase();
+          const tagName = this.tagName.toLowerCase();
 
           if (!results[url].hasOwnProperty(tagName)) {
             results[url][tagName] = [];
@@ -77,7 +80,7 @@ try {
 
           results[url][tagName].push({
             text: $element.text(),
-            html: $element.html()
+            html: entities.decode($('<div></div>').html($element.clone()).html())
           });
 
         });
