@@ -4,9 +4,9 @@ const needle = require('needle');
 const tress = require('tress');
 const cheerio = require('cheerio');
 const perf = require('execution-time')();
-const fs = require('fs');
 const _cliProgress = require('cli-progress');
 const Entities = require('html-entities').XmlEntities;
+const writeResults = require('./lib/write');
 
 const urlCore = 'http://t02.gazprom.dev.design.ru';
 const url = `${urlCore}/map/`;
@@ -112,8 +112,4 @@ try {
   console.error('Common error');
   writeResults();
   throw e;
-}
-
-function writeResults() {
-  fs.writeFileSync('./result.json', JSON.stringify(results, null, 4, 'utf-8'));
 }
