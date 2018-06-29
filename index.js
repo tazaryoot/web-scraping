@@ -7,6 +7,7 @@ const perf = require('execution-time')();
 const _cliProgress = require('cli-progress');
 const Entities = require('html-entities').XmlEntities;
 const writeResults = require('./lib/write');
+const argv = require('yargs').argv;
 
 const urlCore = 'http://t02.gazprom.dev.design.ru';
 const url = `${urlCore}/map/`;
@@ -25,6 +26,7 @@ perf.start();
   open_timeout: 50
 }); */
 
+console.log('test', argv.qq);
 try {
   let queue = tress((url, callback) => {
 
@@ -46,9 +48,9 @@ try {
         if ($area.length) {
           let $aList = $area
             .find('a')
-            /* .filter(function () {
+            .filter(function () {
               return $(this).attr('href').indexOf('/investor') !== -1;
-            }) */;
+            });
 
           progressBar.start($aList.length, progressValue);
 
