@@ -26,17 +26,32 @@ perf.start();
   open_timeout: 50
 }); */
 
-console.log('test', argv.qq);
+if (argv.selector) {
+  let selectorString = '';
+
+  if (Array.isArray(argv.selector)) {
+    argv.selector.forEach((selector, idx) =>{
+      selectorString += selector;
+
+      if (idx < argv.selector.length - 1) {
+        selectorString += ',';
+      }
+    });
+  } else {
+    selectorString += argv.selector;
+  }
+} else {
+  throw new Error('selectot is empty!');
+}
+
 try {
   let queue = tress((url, callback) => {
-
-    //console.info('get url: ', url);
 
     needle.get(url, (err, res) => {
 
       if (err) {
         console.error('Get page error');
-        writeResults();
+        writeResults(results);
         return;
       }
 
@@ -65,8 +80,7 @@ try {
           });
         }
 
-
-        let $itemList = $('h3').add('h4');
+        let $itemList = $(selectorString);
 
         if ($itemList.length) {
           results[url] = {};
@@ -94,7 +108,7 @@ try {
         callback();
       } catch (e) {
         console.error('Error in parse');
-        writeResults();
+        writeResults(results);
         throw e;
       }
     });
@@ -102,7 +116,7 @@ try {
   });
 
   queue.drain = function() {
-    writeResults();
+    writeResults(results);
 
     progressBar.stop();
     let perfomance = perf.stop();
@@ -112,6 +126,6 @@ try {
   queue.push(url);
 } catch (e) {
   console.error('Common error');
-  writeResults();
+  writeResults(results);
   throw e;
 }
