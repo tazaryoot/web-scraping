@@ -1,15 +1,16 @@
 /*jshint esversion: 6 */
 
+const config = require('./config');
 const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
 const _cliProgress = require('cli-progress');
 const writeResults = require('./lib/write');
 const argv = require('yargs').argv;
-const scrapping = require('./lib/scrap_modules/gazprom');
+const scrapping = require(config.scrappingModulePath);
 
-const urlCore = 'http://t02.gazprom.dev.design.ru';
-const url = `${urlCore}/map/`;
+const urlCore = config.urlCore;
+const url = config.urlMap;
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
 
@@ -49,7 +50,7 @@ try {
     needle.get(url, (err, res) => {
 
       if (err) {
-        console.error('Get page error');
+        console.error(`Get page ${url} is failed`);
         writeResults(results);
         return;
       }
@@ -67,7 +68,7 @@ try {
 
         callback();
       } catch (e) {
-        console.error('Error in parse');
+        console.error(`Parse error on page ${url}`);
         writeResults(results);
         throw e;
       }
