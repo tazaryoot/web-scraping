@@ -21,22 +21,15 @@ perf.start();
 /* needle.defaults({
   open_timeout: 50
 }); */
-/*TODO: обрабока прерывания*/
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
 rl.on('SIGINT', () => {
-  rl.question('Are you sure you want to exit?\r\n', answer => {
-    rl.pause();
-    if (answer.match(/^y(es)?$/i)) {
-      writeResults();
-      rl.close();
-    } else {
-      rl.resume();
-    }
-  });
+  writeResults(results);
+  rl.close();
 });
 
 let selectorString = '';
