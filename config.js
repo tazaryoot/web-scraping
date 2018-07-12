@@ -3,7 +3,8 @@
 const config = {
   urlCore: '',
   urlMap: '',
-  scrappingModulePath: ''
+  scrappingModulePath: '',
+  excludeURL: ''
 };
 
 module.exports = config;
