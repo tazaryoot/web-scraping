@@ -1,6 +1,14 @@
 /*jshint esversion: 6 */
 
 const config = require('./config');
+
+if (!config.scrappingModulePath) {
+  throw new Error('scrappingModulePath not set');
+}
+if (!config.urlCore) {
+  throw new Error('urlCore not set');
+}
+
 const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
@@ -10,7 +18,8 @@ const argv = require('yargs').argv;
 const scrapping = require(config.scrappingModulePath);
 const readline = require('readline');
 const urlCore = config.urlCore;
-const url = config.urlMap;
+const url = config.urlMap || urlCore;
+const excludeURL = config.excludeURL;
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
 
@@ -73,7 +82,8 @@ try {
           queue: queue,
           results: results,
           selectorString: selectorString,
-          progressBar: progressBar
+          progressBar: progressBar,
+          excludeURL: excludeURL
         });
 
         callback();
