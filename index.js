@@ -18,7 +18,8 @@ const argv = require('yargs').argv;
 const scrapping = require(config.scrappingModulePath);
 const readline = require('readline');
 const urlCore = config.urlCore;
-const url = config.urlMap || config.urlCore;
+const url = config.urlMap || urlCore;
+const excludeURL = config.excludeURL;
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
 
@@ -81,7 +82,8 @@ try {
           queue: queue,
           results: results,
           selectorString: selectorString,
-          progressBar: progressBar
+          progressBar: progressBar,
+          excludeURL: excludeURL
         });
 
         callback();
