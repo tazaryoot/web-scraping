@@ -13,15 +13,18 @@ const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
 const _cliProgress = require('cli-progress');
-const writeResults = require('./lib/write');
+const Write = require('./lib/write');
 const argv = require('yargs').argv;
-const scrapping = require(config.scrappingModulePath);
 const readline = require('readline');
+const scrapping = require(config.scrappingModulePath);
+
 const urlCore = config.urlCore;
 const url = config.urlMap || urlCore;
 const excludeURL = config.excludeURL;
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
+const write = new Write();
+write.startWriteStream('log.txt');
 
 let results = {};
 
@@ -37,7 +40,7 @@ const rl = readline.createInterface({
 });
 
 rl.on('SIGINT', () => {
-  writeResults(results);
+  write.results(results);
   rl.close();
 });
 
@@ -56,8 +59,17 @@ if (argv.selector) {
     selectorString += argv.selector;
   }
 } else {
+  write.log({
+    message: 'selector is empty!',
+    logLevel: 'error'
+  });
   throw new Error('selector is empty!');
 }
+
+write.log({
+  message: `Start scrapping with selectors ${selectorString}`,
+  logLevel: 'info'
+});
 
 try {
   let queue = tress((url, callback) => {
@@ -69,13 +81,21 @@ try {
     needle.get(url, (err, res) => {
 
       if (err) {
+        write.log({
+          message: `Get page ${url} is failed`,
+          logLevel: 'error'
+        });
         console.error(`Get page ${url} is failed`);
-        writeResults(results);
+        write.results(results);
         return;
       }
 
       try {
 
+        write.log({
+          message: `Scrapping page ${url}`,
+          logLevel: 'info'
+        });
         scrapping({
           res: res,
           url: url,
@@ -88,8 +108,12 @@ try {
 
         callback();
       } catch (e) {
+        write.log({
+          message: `Parse error on page ${url}`,
+          logLevel: 'error'
+        });
         console.error(`Parse error on page ${url}`);
-        writeResults(results);
+        write.results(results);
         throw e;
       }
     });
@@ -97,17 +121,25 @@ try {
   });
 
   queue.drain = function() {
-    writeResults(results);
+    write.results(results);
 
     progressBar.stop();
     let perfomance = perf.stop();
-    console.warn('Executing time:', perfomance.verboseWords);
+    write.log({
+      message: `Executing time: ${perfomance.verboseWords}`,
+      logLevel: 'info'
+    });
+    console.warn(`Executing time: ${perfomance.verboseWords}`);
     rl.close();
   };
 
   queue.push(url);
 } catch (e) {
+  write.log({
+    message: 'Common error',
+    logLevel: 'error'
+  });
   console.error('Common error');
-  writeResults(results);
+  write.results(results);
   throw e;
 }
