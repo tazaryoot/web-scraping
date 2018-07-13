@@ -3,4 +3,5 @@
 result.json
 1.*
 *-lock.json
-log.txt
+log**.txt
+map.txt
