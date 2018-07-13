@@ -1,4 +1,5 @@
 /node_modules
+/results
 result.json
 1.*
 *-lock.json

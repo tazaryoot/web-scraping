@@ -24,7 +24,7 @@ const excludeURL = config.excludeURL;
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
 const write = new Write();
-write.startWriteStream('log.txt');
+write.startWriteStream(`log-${write.getTime(true)}.txt`);
 
 let results = {};
 
@@ -82,7 +82,7 @@ try {
 
       if (err) {
         write.log({
-          message: `Get page ${url} is failed`,
+          message: `Get page ${url} is failed\r\n Error: ${err}`,
           logLevel: 'error'
         });
         console.error(`Get page ${url} is failed`);
@@ -109,7 +109,7 @@ try {
         callback();
       } catch (e) {
         write.log({
-          message: `Parse error on page ${url}`,
+          message: `Parse error on page ${url}\r\n Error: ${e}`,
           logLevel: 'error'
         });
         console.error(`Parse error on page ${url}`);
@@ -136,7 +136,7 @@ try {
   queue.push(url);
 } catch (e) {
   write.log({
-    message: 'Common error',
+    message: `Common error\r\n Error: ${e}`,
     logLevel: 'error'
   });
   console.error('Common error');
