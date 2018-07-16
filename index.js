@@ -13,6 +13,7 @@ const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
 const _cliProgress = require('cli-progress');
+const bs = require('browser-sync').create();
 const Write = require('./lib/write');
 const argv = require('yargs').argv;
 const readline = require('readline');
@@ -33,6 +34,8 @@ perf.start();
 /* needle.defaults({
   open_timeout: 50
 }); */
+
+console.info('Starting...');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -130,7 +133,16 @@ try {
       logLevel: 'info'
     });
     console.warn(`Executing time: ${perfomance.verboseWords}`);
+
     rl.close();
+
+    console.info('Starting server...');
+
+    bs.init({
+      server: './client/app',
+      port: 4044,
+      files: ['./client/app/css/style.css', './client/app/js/*.js', './client/app/*.html']
+    });
   };
 
   queue.push(url);
