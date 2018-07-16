@@ -136,13 +136,16 @@ try {
 
     rl.close();
 
-    console.info('Starting server...');
+    if (argv.server) {
+      console.info('Starting server...');
 
-    bs.init({
-      server: './client/app',
-      port: 4044,
-      files: ['./client/app/css/style.css', './client/app/js/*.js', './client/app/*.html']
-    });
+      bs.init({
+        server: './client/app',
+        port: 4044,
+        files: ['./client/app/css/style.css', './client/app/js/*.js', './client/app/*.html']
+      });
+    }
+
   };
 
   queue.push(url);
