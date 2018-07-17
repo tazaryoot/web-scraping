@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Results</title>
+      <link href="./css/style.css" rel="stylesheet">
+      <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  </head>
+  <body>
+      <div id="app">
+        <ul>
+          <list-item
+            v-for="item in mainData"
+            v-bind:page="item.page">
+          </list-item>
+        </ul>
+      </div>
+      <script src="./js/app.js"></script>
+  </body>
+</html>

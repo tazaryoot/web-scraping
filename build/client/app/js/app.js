@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\n\n/*jshint esversion: 6 */\nconsole.log();\n\n//# sourceURL=webpack:///./src/client/js/app.js?");
+eval("\n\n/*jshint esversion: 6 */\n\n(function () {\n\n  var mainData = void 0;\n\n  Vue.component('list-item', {\n    props: ['page'],\n    template: '<li><a :href=\"page\">{{ page }}</a></li>'\n  });\n\n  Vue.component('list', {\n    props: ['data'],\n    template: '<list-item\\n                v-for=\"item in data\"\\n                v-bind:page=\"item.page\">\\n                </list-item>'\n  });\n\n  var getData = function getData() {\n    return fetch('../assets/result.json').then(function (response) {\n      if (response.ok) {\n        return response.json();\n      }\n      throw new Error('Network response was not ok.');\n    }).catch(function (error) {\n      console.error('Fetch Error = \\n ' + error);\n    });\n  };\n\n  window.addEventListener('load', function () {\n    getData().then(function (result) {\n      console.log('result', result);\n      init(result);\n    });\n  });\n\n  function init() {\n    var result = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];\n\n    mainData = result;\n\n    new Vue({\n      el: '#app',\n      data: {\n        mainData: mainData\n      }\n    });\n  }\n})();\n\n//# sourceURL=webpack:///./src/client/js/app.js?");
 
 /***/ })
 

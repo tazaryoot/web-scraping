@@ -13,7 +13,7 @@ let config = {
         'css/style.css': './src/client/scss/app.scss'
     },
     output: {
-        path: path.resolve(__dirname, './client/app'),
+        path: path.resolve(__dirname, './build/client/app'),
         filename: '[name]'
     },
 
