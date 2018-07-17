@@ -27,7 +27,7 @@ const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classi
 const write = new Write();
 write.startWriteStream(`log-${write.getTime(true)}.txt`);
 
-let results = {};
+let results = [];
 
 perf.start();
 
@@ -89,7 +89,7 @@ try {
           logLevel: 'error'
         });
         console.error(`Get page ${url} is failed`);
-        write.results(results);
+        write.results(results, './client/app/assets/');
         return;
       }
 
@@ -116,7 +116,7 @@ try {
           logLevel: 'error'
         });
         console.error(`Parse error on page ${url}`);
-        write.results(results);
+        write.results(results, './client/app/assets/');
         throw e;
       }
     });
@@ -124,7 +124,7 @@ try {
   });
 
   queue.drain = function() {
-    write.results(results);
+    write.results(results, './client/app/assets/');
 
     progressBar.stop();
     let perfomance = perf.stop();
@@ -155,6 +155,6 @@ try {
     logLevel: 'error'
   });
   console.error('Common error');
-  write.results(results);
+  write.results(results, './client/app/assets/');
   throw e;
 }
