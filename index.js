@@ -85,42 +85,41 @@ if (argv.server && !argv.selector) {
 
       needle.get(url, (err, res) => {
 
-        if (err) {
+        if (err || res.statusCode !== 200 ) {
           write.log({
-            message: `Get page ${url} is failed\r\n Error: ${err}`,
-            logLevel: 'error'
+            message: `Status: ${res.statusCode}. Get page ${url} is failed.`,
+            logLevel: 'err'
           });
-          console.error(`Get page ${url} is failed`);
-          write.results(results, resultPath);
-          return;
+        } else {
+          try {
+
+            write.log({
+              message: `Status: ${res.statusCode}. Scrapping page ${url}.`,
+              logLevel: 'inf'
+            });
+
+            scrapping({
+              res: res,
+              url: url,
+              queue: queue,
+              results: results,
+              selectorString: selectorString,
+              progressBar: progressBar,
+              excludeURL: excludeURL
+            });
+
+          } catch (e) {
+            write.log({
+              message: `Parse error on page ${url}\r\n Error: ${e}`,
+              logLevel: 'err'
+            });
+            console.error(`Parse error on page ${url}`);
+            write.results(results, resultPath);
+            throw e;
+          }
         }
 
-        try {
-
-          write.log({
-            message: `Scrapping page ${url}`,
-            logLevel: 'info'
-          });
-          scrapping({
-            res: res,
-            url: url,
-            queue: queue,
-            results: results,
-            selectorString: selectorString,
-            progressBar: progressBar,
-            excludeURL: excludeURL
-          });
-
-          callback();
-        } catch (e) {
-          write.log({
-            message: `Parse error on page ${url}\r\n Error: ${e}`,
-            logLevel: 'error'
-          });
-          console.error(`Parse error on page ${url}`);
-          write.results(results, resultPath);
-          throw e;
-        }
+        callback();
       });
 
     });
@@ -132,7 +131,7 @@ if (argv.server && !argv.selector) {
       let perfomance = perf.stop();
       write.log({
         message: `Executing time: ${perfomance.verboseWords}`,
-        logLevel: 'info'
+        logLevel: 'inf'
       });
       console.warn(`Executing time: ${perfomance.verboseWords}`);
 
@@ -150,7 +149,7 @@ if (argv.server && !argv.selector) {
   } catch (e) {
     write.log({
       message: `Common error\r\n Error: ${e}`,
-      logLevel: 'error'
+      logLevel: 'err'
     });
     console.error('Common error');
     write.results(results, resultPath);
@@ -160,12 +159,12 @@ if (argv.server && !argv.selector) {
 } else {
   write.log({
     message: 'selector is empty!',
-    logLevel: 'error'
+    logLevel: 'err'
   });
   throw new Error('selector is empty!');
 }
 
 write.log({
   message: `Start scrapping with selectors ${selectorString}`,
-  logLevel: 'info'
+  logLevel: 'inf'
 });
