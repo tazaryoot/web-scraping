@@ -5,3 +5,8 @@ html {
 * {
   box-sizing: border-box;
 }
+.ne-loading {
+  .mdl-progress {
+    width: 100%;
+  }
+}
