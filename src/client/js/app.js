@@ -29,8 +29,8 @@
     mounted,
     template: `<div class="mdl-card mdl-shadow--2dp">
                   <template v-for="tag in page.tags">
-                    <div class="mdl-card__title-text">
-                      <h4>Селектор: {{tag.name}}</h4>
+                    <div class="mdl-card__title">
+                      <h4 class="mdl-card__title-text">Селектор: {{tag.name}}</h4>
                     </div>
                     <div class="mdl-card__supporting-text">
                       <list
@@ -38,8 +38,8 @@
                       </list>
                     </div>
                   </template>
-                  <div class="mdl-card__actions">
-                    <a class="mdl-color-text--grey-800" :href="page.page">Page</a>
+                  <div class="mdl-card__actions mdl-card--border">
+                    <a class="mdl-color-text--grey-800" :href="page.page">Page: {{page.page}}</a>
                   </div>
                 </div>`
   });
@@ -62,7 +62,7 @@
   Vue.component('list-item', {
     props: ['item'],
     name: 'list-item',
-    template: `<li class="mdl-list__item mdl-list__item--three-line">
+    template: `<li class="mdl-list__item">
                 <span class="mdl-list__item-primary-content">
                   <span class="mdl-list__item-text-body">
                     {{item.text}}

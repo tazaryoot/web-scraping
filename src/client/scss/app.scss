@@ -9,8 +9,17 @@ body {
   background-color: #FAFAFA;
 }
 .ne-list-wrapper {
-  width: 1800px;
-  margin: 0 auto;
+  max-width: 1800px;
+
+  @media screen and (min-width: 1800px) {
+    margin: 0 auto;
+  }
+}
+.mdl-layout__header {
+  background-color: #202124;
+}
+.mdl-card__title {
+  background-color: rgba(0,0,0,.05);
 }
 .ne-loading {
   .mdl-progress {
