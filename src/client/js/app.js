@@ -2,6 +2,8 @@
 import Loading from './vue/loading/Loading.vue';
 import MyHeader from './vue/my-header/MyHeader.vue';
 import Card from './vue/card/Card.vue';
+import calculatingTotal from './lib/calculatingTotal';
+import getData from './lib/getData';
 
 (function() {
   let mainData;
@@ -22,49 +24,17 @@ import Card from './vue/card/Card.vue';
     }
   });
 
-  let getData = function() {
-    return fetch('../assets/result.json')
-    .then(response => {
-      if(response.ok) {
-        return response.json();
-      }
-      throw new Error('Network response was not ok.');
-    })
-    .catch(error => {
-        console.error(`Fetch Error = \n ${error}`);
+  getData('../assets/result.json')
+    .then(result => {
+      console.log('result', result);
+      init(result);
     });
-  };
-
-  getData()
-  .then(result => {
-    console.log('result', result);
-    init(result);
-  });
 
   function init(result = []) {
     mainData = result;
     vl.$data.isLoaded = true;
 
-    let total = {
-      pages: mainData.length,
-      tags: []
-    };
-
-    total = mainData.reduce((pV, cV, idx) => {
-      cV.tags.forEach(tag => {
-        let elementIndex = total.tags.findIndex(element => element.name === tag.name);
-        if (elementIndex === -1) {
-          pV.tags.push({
-            name: tag.name,
-            accumulated: Number(tag.list.length)
-          });
-        } else {
-          pV.tags[elementIndex].accumulated += Number(tag.list.length);
-        }
-      });
-
-      return pV;
-    }, total);
+    let total = calculatingTotal(mainData);
 
     vm = new Vue({
       el: '#app',
@@ -78,4 +48,5 @@ import Card from './vue/card/Card.vue';
       }
     });
   }
+
 })();
