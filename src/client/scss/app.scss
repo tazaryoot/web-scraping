@@ -5,8 +5,29 @@ html {
 * {
   box-sizing: border-box;
 }
+body {
+  background-color: #FAFAFA;
+}
+.ne-list-wrapper {
+  width: 1800px;
+  margin: 0 auto;
+}
 .ne-loading {
   .mdl-progress {
     width: 100%;
+  }
+}
+.mdl-card {
+  width: 100%;
+  margin: 10px 0;
+}
+.mdl-layout__header-row {
+  p {
+    margin-right: 5px;
+
+    &:first-child {
+      margin-right: 10px;
+
+    }
   }
 }

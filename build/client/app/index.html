@@ -4,25 +4,29 @@
       <meta charset="UTF-8">
       <title>Results</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link href="./css/style.css" rel="stylesheet">
       <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
       <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
       <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+      <link rel="stylesheet" href="./css/style.css"type="text/css">
       <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
       <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   </head>
   <body>
-      <div id="app">
+      <div id="loading">
+        <div class="ne-loading-wrapper">
+          <loading :loaded="compIsLoaded" ref="loading"></loading>
+        </div>
+      </div>
+      <div id="app" class="ne-main">
+        <my-header :total="total"></my-header>
         <div class="ne-list-wrapper">
-          <list
-            :list="mainData"
+          <card v-for="item in mainData"
+            :page="item">
+          </card>
+          <!-- <pagination
             :start="start"
             :step="step">
-          </list>
-          <pagination
-            :start="start"
-            :step="step">
-          </pagination>
+          </pagination> -->
         </div>
       </div>
       <script src="./js/app.js"></script>

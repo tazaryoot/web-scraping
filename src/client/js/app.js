@@ -13,22 +13,47 @@
   const mounted = function() {
     //console.info(`${this.$options.name} mounted`);
   };
+  const beforeUpdated = function() {
+    console.info(`${this.$options.name} beforeUpdated`);
+  };
+  const updated = function() {
+    console.info(`${this.$options.name} updated`);
+  };
+
+  Vue.component('card', {
+    props: ['page'],
+    name: 'card',
+    beforeCreated,
+    created,
+    beforeMount,
+    mounted,
+    template: `<div class="mdl-card mdl-shadow--2dp">
+                  <template v-for="tag in page.tags">
+                    <div class="mdl-card__title-text">
+                      <h4>Селектор: {{tag.name}}</h4>
+                    </div>
+                    <div class="mdl-card__supporting-text">
+                      <list
+                        :list="tag.list">
+                      </list>
+                    </div>
+                  </template>
+                  <div class="mdl-card__actions">
+                    <a class="mdl-color-text--grey-800" :href="page.page">Page</a>
+                  </div>
+                </div>`
+  });
 
   Vue.component('list', {
-    props: ['list', 'start', 'step'],
+    props: ['list'],
     name: 'list',
     beforeCreated,
     created,
     beforeMount,
     mounted,
-    data: function() {
-      return {
-        trimmedList: this.list.splice(this.step, this.step)
-      };
-    },
     template: `<ul class="mdl-list">
                 <list-item
-                  v-for="item in trimmedList"
+                  v-for="item in list"
                   :item="item">
                 </list-item>
               </ul>`
@@ -37,15 +62,11 @@
   Vue.component('list-item', {
     props: ['item'],
     name: 'list-item',
-    beforeCreated,
-    created,
-    beforeMount,
-    mounted,
-    template: `<li class="mdl-list__item">
+    template: `<li class="mdl-list__item mdl-list__item--three-line">
                 <span class="mdl-list__item-primary-content">
-                  <a :href="item.page">
-                    {{ item.page }}
-                  </a>
+                  <span class="mdl-list__item-text-body">
+                    {{item.text}}
+                  </span>
                 </span>
               </li>`
   });
@@ -53,10 +74,6 @@
   Vue.component('pagination', {
     props: ['start', 'step'],
     name: 'pagination',
-    beforeCreated,
-    created,
-    beforeMount,
-    mounted,
     template: `<div class="ne-button-group">
                 <a class="ne-button mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" @click="next">Next</a>
                 <a class="ne-button" @click="previous">Previous</a>
@@ -71,6 +88,39 @@
     }
   });
 
+  Vue.component('my-header', {
+    props: ['total'],
+    template: `<header class="mdl-layout__header">
+                <div class="mdl-layout__header-row">
+                  <p><b>Найдено:</b></p>
+                  <p v-for="tag in total.tags">{{tag.name}}: {{tag.accumulated}}</p>
+                  <p>на {{total.pages}} страницах</p>
+                </div>
+              </header>`
+  });
+
+  Vue.component('loading', {
+    name: 'loading',
+    props: ['loaded'],
+    beforeUpdated,
+    template: `<div v-show="!loaded" class="ne-loading">
+                <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+              </div>`
+  });
+
+  let mainData;
+  let vm;
+  let vl = new Vue({
+    el: '#loading',
+    data: {
+        isLoaded: false
+    },
+    computed: {
+      compIsLoaded: function() {
+        return this.isLoaded;
+      }
+    }
+  });
 
   let getData = function() {
     return fetch('../assets/result.json')
@@ -93,13 +143,36 @@
 
   function init(result = []) {
     mainData = result;
+    vl.$data.isLoaded = true;
+
+    let total = {
+      pages: mainData.length,
+      tags: []
+    };
+
+    total = mainData.reduce((pV, cV, idx) => {
+      cV.tags.forEach(tag => {
+        let elementIndex = total.tags.findIndex(element => element.name === tag.name);
+        if (elementIndex === -1) {
+          pV.tags.push({
+            name: tag.name,
+            accumulated: Number(tag.list.length)
+          });
+        } else {
+          pV.tags[elementIndex].accumulated += Number(tag.list.length);
+        }
+      });
+
+      return pV;
+    }, total);
 
     vm = new Vue({
       el: '#app',
       data: {
         mainData,
         start: 1,
-        step: 100
+        step: 100,
+        total
       }
     });
   }
