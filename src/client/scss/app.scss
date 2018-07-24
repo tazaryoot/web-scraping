@@ -1,0 +1,42 @@
+html {
+  padding: 0;
+  margin: 0;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  background-color: #FAFAFA;
+}
+.ne-list-wrapper {
+  max-width: 1800px;
+
+  @media screen and (min-width: 1800px) {
+    margin: 0 auto;
+  }
+}
+.mdl-layout__header {
+  background-color: #202124;
+}
+.mdl-card__title {
+  background-color: rgba(0,0,0,.05);
+}
+.ne-loading {
+  .mdl-progress {
+    width: 100%;
+  }
+}
+.mdl-card {
+  width: 100%;
+  margin: 10px 0;
+}
+.mdl-layout__header-row {
+  p {
+    margin-right: 5px;
+
+    &:first-child {
+      margin-right: 10px;
+
+    }
+  }
+}
