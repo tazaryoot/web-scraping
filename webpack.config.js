@@ -3,6 +3,8 @@
 const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 const devMode = process.env.NODE_ENV !== 'production';
 
@@ -23,6 +25,10 @@ let config = {
                 test: /\.js$/, // files ending with .js
                 exclude: /node_modules/, // exclude the node_modules directory
                 loader: 'babel-loader' // use this (babel-core) loader
+            },
+            {
+              test: /\.vue$/,
+              loader: 'vue-loader'
             },
             {
                 test: /\.(sa|sc|c)ss$/,
@@ -47,7 +53,9 @@ let config = {
     plugins: [
         new MiniCssExtractPlugin({
             filename: devMode ? '[name]' : '[name].[hash]'
-        })
+        }),
+        new VueLoaderPlugin(),
+        new UglifyJSPlugin()
     ]
 
 };
