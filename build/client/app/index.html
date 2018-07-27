@@ -17,17 +17,19 @@
           <loading :loaded="compIsLoaded" ref="loading"></loading>
         </div>
       </div>
-      <div id="app" class="ne-main">
+      <div id="app" class="ne-main mdl-layout mdl-js-layout">
         <my-header :total="total"></my-header>
-        <div class="ne-list-wrapper">
-          <card v-for="item in mainData"
-            :page="item">
-          </card>
-          <!-- <pagination
+        <main class="mdl-layout__content">
+          <div class="ne-list-wrapper">
+            <card v-for="item in mainData"
+              :page="item">
+            </card>
+          </div>
+          <pagination
             :start="start"
             :step="step">
-          </pagination> -->
-        </div>
+          </pagination>
+        </main>
       </div>
       <script src="./js/app.js"></script>
   </body>

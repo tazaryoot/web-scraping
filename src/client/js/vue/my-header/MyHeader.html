@@ -1,7 +1,19 @@
-<header class="mdl-layout__header">
+<header class="mdl-layout__header mdl-layout__header--scroll">
   <div class="mdl-layout__header-row">
-    <p>Найдено:</p>
-    <p v-for="tag in total.tags">{{tag.name}}: {{tag.accumulated}}</p>
-    <p>на {{total.pages}} страницах</p>
+      <span class="mdl-layout__title">
+        <span class="mdl-layout__title-text">Найдено:</span>
+        <span class="mdl-layout__title-text" v-for="tag in total.tags">{{tag.name}}: {{tag.accumulated}}</span>
+        <span class="mdl-layout__title-text">на {{total.pages}} страницах</span>
+      </span>
+      <div class="mdl-layout-spacer">
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <select class="mdl-textfield__input" id="group-type" name="group-type">
+          <option></option>
+          <option value="85">По страницам</option>
+          <option value="87">По селекторам</option>
+        </select>
+        <label class="mdl-textfield__label" for="group-type">Группировать:</label>
+      </div>
   </div>
 </header>
