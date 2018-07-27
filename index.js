@@ -109,13 +109,18 @@ if (argv.server && !argv.selector) {
             });
 
           } catch (e) {
-            write.log({
-              message: `Parse error on page ${url}\r\n Error: ${e}`,
-              logLevel: 'err'
-            });
-            console.error(`Parse error on page ${url}`);
-            write.results(results, resultPath);
-            throw e;
+            Promise.all([
+              write.log({
+                message: `Parse error on page ${url}\r\n Error: ${e}`,
+                logLevel: 'err'
+              }),
+              write.results(results, resultPath)
+            ])
+              .then(() => {
+                console.error(`Parse error on page ${url}`);
+                setTimeout(() => {process.exit(-1);}, 1000);
+              })
+              .catch();
           }
         }
 
@@ -125,43 +130,57 @@ if (argv.server && !argv.selector) {
     });
 
     queue.drain = function() {
-      write.results(results, resultPath);
 
-      progressBar.stop();
       let perfomance = perf.stop();
-      write.log({
-        message: `Executing time: ${perfomance.verboseWords}`,
-        logLevel: 'inf'
-      });
-      console.warn(`Executing time: ${perfomance.verboseWords}`);
 
-      rl.close();
+      Promise.all([
+        write.log({
+          message: `Executing time: ${perfomance.verboseWords}`,
+          logLevel: 'inf'
+        }),
+        write.results(results, resultPath)
+      ])
+        .then(() => {
+          progressBar.stop();
+          console.warn(`Executing time: ${perfomance.verboseWords}`);
 
-      if (argv.server) {
-        console.info('Starting server...');
+          rl.close();
 
-        bs.init(bsConfig);
-      }
+          if (argv.server) {
+            console.info('Starting server...');
 
+            bs.init(bsConfig);
+          }
+
+        })
+        .catch();
     };
 
     queue.push(url);
   } catch (e) {
-    write.log({
-      message: `Common error\r\n Error: ${e}`,
-      logLevel: 'err'
-    });
-    console.error('Common error');
-    write.results(results, resultPath);
-    throw e;
+    Promise.all([
+      write.log({
+        message: `Common error\r\n Error: ${e}`,
+        logLevel: 'err'
+      }),
+      write.results(results, resultPath)
+    ])
+      .then(() => {
+        console.error('Common error');
+        setTimeout(() => {process.exit(-1);}, 1000);
+      })
+      .catch();
   }
 
 } else {
   write.log({
     message: 'selector is empty!',
     logLevel: 'err'
-  });
-  throw new Error('selector is empty!');
+  })
+    .then(() => {
+      console.error('selector is empty!');
+      setTimeout(() => {process.exit(-1);}, 1000);
+    });
 }
 
 write.log({
