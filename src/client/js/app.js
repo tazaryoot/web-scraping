@@ -2,6 +2,7 @@
 import Loading from './vue/loading/Loading.vue';
 import MyHeader from './vue/my-header/MyHeader.vue';
 import Card from './vue/card/Card.vue';
+import Pagination from './vue/pagination/Pagination.vue';
 import calculatingTotal from './lib/calculatingTotal';
 import getData from './lib/getData';
 
@@ -40,11 +41,12 @@ import getData from './lib/getData';
       el: '#app',
       components: {
         MyHeader,
-        Card
+        Card,
+        Pagination,
       },
       data: {
         mainData,
-        total
+        total,
       }
     });
   }
