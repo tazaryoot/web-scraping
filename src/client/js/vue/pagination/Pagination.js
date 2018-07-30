@@ -2,13 +2,5 @@
 
 export default {
     name: 'pagination',
-    prop: ['start', 'step'],
-    methods: {
-      next: function() {
-        console.log('next');
-      },
-      previous: function() {
-        console.log('previous');
-      }
-    }
-}
+    props: ['fnnext', 'fnprev', 'count', 'fnshowpage', 'step'],
+};

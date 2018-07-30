@@ -25,11 +25,14 @@
               :page="item">
             </card>
           </div>
-          <pagination
-            :start="start"
-            :step="step">
-          </pagination>
         </main>
+        <pagination
+          :fnnext="next"
+          :fnprev="previous"
+          :count="pageCount"
+          :fnshowpage="showPage"
+          :step="step">
+        </pagination>
       </div>
       <script src="./js/app.js"></script>
   </body>

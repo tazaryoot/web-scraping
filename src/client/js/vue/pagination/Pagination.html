@@ -1,4 +1,5 @@
 <div class="ne-button-group">
-  <a class="ne-button mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" @click="next">Next</a>
-  <a class="ne-button" @click="previous">Previous</a>
+  <!-- <a class="ne-button mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" @click="fnnext">Next</a> -->
+  <a class="ne-button mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" @click="fnshowpage(n * step)" v-for="n in count">{{n}}</a>
+  <!-- <a class="ne-button mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" @click="fnprev">Previous</a> -->
 </div>
