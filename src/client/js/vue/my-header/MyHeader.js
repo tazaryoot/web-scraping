@@ -2,5 +2,5 @@
 
 export default {
   name: 'my-header',
-  props: ['total']
+  props: ['total', 'fnchangeelementonpage'],
 };

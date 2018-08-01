@@ -38,10 +38,6 @@ import getPageCount from './lib/getPageCount';
     vl.$data.isLoaded = true;
 
     let total = calculatingTotal(result);
-    let pageCount = getPageCount({
-      data: result,
-      step
-    });
 
     vm = new Vue({
       el: '#app',
@@ -52,26 +48,37 @@ import getPageCount from './lib/getPageCount';
       },
       data: {
         total,
-        pageCount,
         mainData,
         step,
       },
       computed: {
-
+        pageCount: function() {
+            const step = this.step;
+            const data = result;
+            return  getPageCount({
+              data,
+              step,
+            });
+        }
       },
       methods: {
-        next: function() {
+        nextPage: function() {
           console.log('next');
-          this.mainData = result.slice(100, step + 100);
+          this.mainData = result.slice(100, this.step + 100);
         },
-        previous: function() {
+        previousPage: function() {
           console.log('prev');
-          this.mainData = result.slice(0, step);
+          this.mainData = result.slice(0, this.step);
         },
         showPage: function(start = 0) {
           console.log('showPage');
-          this.mainData = result.slice(start, step + start);
+          this.mainData = result.slice(start, this.step + start);
         },
+        changeElementOnPage: function(event) {
+          console.log('cnahge');
+          this.step = event.target.value;
+          this.mainData = result.slice(0, this.step);
+        }
       }
     });
   }
