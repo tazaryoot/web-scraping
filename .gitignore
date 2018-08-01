@@ -1,6 +1,7 @@
 /node_modules
 /results
-result*.json
+/.vscode
+result*.*
 1.*
 *-lock.json
 log**.txt

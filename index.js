@@ -22,6 +22,10 @@ const scrapping = require(config.scrappingModulePath);
 const urlCore = config.urlCore;
 const url = config.urlMap || urlCore;
 const excludeURL = config.excludeURL;
+const resultPath = config.resultPath || './build/client/app/assets/';
+/* jshint ignore:start */
+const exportSettings = {...(config.exportSettings || {}), path: resultPath};
+/* jshint ignore:end */
 
 const progressBar =  new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic);
 const write = new Write();
@@ -55,14 +59,33 @@ rl.on('SIGINT', () => {
 });
 
 let selectorString = '';
-if (argv.server && !argv.selector) {
-  console.info('Starting server...');
+if (!argv.selector) {
+  if (argv.server) {
+    console.info('Starting server...');
 
-  bs.init(bsConfig);
+    bs.init(bsConfig);
 
-  rl.close();
-} else if (argv.selector) {
+    rl.close();
 
+  } else if (argv.export) {
+    console.log('Exporting...');
+
+    write.initExport2CSV(exportSettings);
+    write.export2Csv();
+
+    rl.close();
+  } else {
+    write.log({
+      message: 'selector is empty!',
+      logLevel: 'err'
+    })
+      .then(() => {
+        console.error('selector is empty!');
+        setTimeout(() => {process.exit(-1);}, 1000);
+      });
+
+  }
+} else {
   if (Array.isArray(argv.selector)) {
     argv.selector.forEach((selector, idx) =>{
       selectorString += selector;
@@ -76,7 +99,6 @@ if (argv.server && !argv.selector) {
   }
 
   try {
-    const resultPath = './build/client/app/assets/';
     let queue = tress((url, callback) => {
 
       if (url.indexOf('http') === -1) {
@@ -141,6 +163,11 @@ if (argv.server && !argv.selector) {
         write.results(results, resultPath)
       ])
         .then(() => {
+          if (argv.export) {
+            console.log('Exporting...');
+            write.initExport2CSV(exportSettings);
+            write.export2Csv();
+          }
           progressBar.stop();
           console.warn(`Executing time: ${perfomance.verboseWords}`);
 
@@ -171,16 +198,6 @@ if (argv.server && !argv.selector) {
       })
       .catch();
   }
-
-} else {
-  write.log({
-    message: 'selector is empty!',
-    logLevel: 'err'
-  })
-    .then(() => {
-      console.error('selector is empty!');
-      setTimeout(() => {process.exit(-1);}, 1000);
-    });
 }
 
 write.log({
