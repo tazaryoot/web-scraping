@@ -1,4 +1,6 @@
-html {
+html,
+body,
+ul {
   padding: 0;
   margin: 0; }
 
@@ -27,8 +29,12 @@ body {
   width: 100%;
   margin: 10px 0; }
 
-.mdl-layout__header-row p {
+.mdl-layout__title-text {
   margin-right: 5px; }
-  .mdl-layout__header-row p:first-child {
-    margin-right: 10px; }
+
+.mdl-layout__title-text:first-child {
+  margin-right: 10px; }
+
+select:focus {
+  outline: none; }
 
