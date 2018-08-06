@@ -73,7 +73,18 @@ if (!argv.selector) {
     write.initExport2CSV(exportSettings);
     write.export2Csv();
 
-    rl.close();
+    let perfomance = perf.stop();
+
+    write.log({
+      message: `Executing time: ${perfomance.verboseWords}`,
+      logLevel: 'inf'
+    })
+      .then(() => {
+        console.warn(`Executing time: ${perfomance.verboseWords}`);
+        rl.close();
+      });
+
+
   } else {
     write.log({
       message: 'selector is empty!',
@@ -87,7 +98,7 @@ if (!argv.selector) {
   }
 } else {
   if (Array.isArray(argv.selector)) {
-    argv.selector.forEach((selector, idx) =>{
+    argv.selector.forEach((selector, idx) => {
       selectorString += selector;
 
       if (idx < argv.selector.length - 1) {
