@@ -1,8 +1,13 @@
 Web Scraping
 =============
 
-Для старта указать в командной строке:
+<h2>Usage</h2>
  
 ```sh
-node index.js --selector selector1 [--selector selector2...]
+npm start [ options... ]
 ```
+<h2>Options</h2>
+
+  - selector строка css-селектор, для поиска элементов;
+  - export экспорт найденных элементов в csv файл;
+  - server вывод найденых элементов web версия;
