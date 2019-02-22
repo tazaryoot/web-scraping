@@ -10,7 +10,7 @@
   "author": "tazaryoot",
   "license": "MIT",
   "dependencies": {
-    "browser-sync": "^2.24.5",
+    "browser-sync": "^2.26.3",
     "cheerio": "^1.0.0-rc.2",
     "cli-progress": "^2.0.0",
     "execution-time": "^1.2.0",
@@ -32,7 +32,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
     "mini-css-extract-plugin": "^0.4.1",
-    "node-sass": "^4.9.2",
+    "node-sass": "^4.11.0",
     "sass-loader": "^7.0.3",
     "style-loader": "^0.21.0",
     "uglifyjs-webpack-plugin": "^1.2.7",
