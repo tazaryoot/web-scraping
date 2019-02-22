@@ -7,7 +7,7 @@ const bs = require('browser-sync').create();
 const { argv } = require('yargs');
 const readline = require('readline');
 const Write = require('./lib/write');
-const config = require('./config');
+const config = require('./scraper.config');
 
 if (!config.scrappingModulePath) {
   throw new Error('scrappingModulePath not set');
