@@ -102,6 +102,11 @@ if (!argv.selector) {
     selectorString += argv.selector;
   }
 
+  let regexp = null;
+  if (argv.regexp) {
+    regexp = new RegExp(argv.regexp);
+  }
+
   try {
     const queue = tress((url, callback) => {
       if (url.indexOf('http') === -1) {
@@ -129,6 +134,7 @@ if (!argv.selector) {
               selectorString,
               progressBar,
               excludeURL,
+              regexp,
             });
           } catch (e) {
             Promise.all([
