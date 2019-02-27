@@ -6,18 +6,18 @@ const cliProgress = require('cli-progress');
 const bs = require('browser-sync').create();
 const { argv } = require('yargs');
 const readline = require('readline');
-const Write = require('./lib/write');
+
+const FileWriter = require('./lib/fileWriter');
 const config = require('./scraper.config');
 
-if (!config.scrappingModulePath) {
-  throw new Error('scrappingModulePath not set');
+if (!config.scrapingModulePath) {
+  throw new Error('scrapingModulePath not set');
 }
 if (!config.urlCore) {
   throw new Error('urlCore not set');
 }
 
-const scrapping = require(config.scrappingModulePath);
-
+const scraping = require(config.scrapingModulePath);
 const { urlCore } = config;
 const url = config.urlMap || urlCore;
 const { excludeURL } = config;
@@ -25,7 +25,7 @@ const resultPath = config.resultPath || './build/client/app/assets/';
 const exportSettings = { ...(config.exportSettings || {}), path: resultPath };
 
 const progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
-const write = new Write();
+const write = new FileWriter();
 
 const bsConfig = {
   server: './build/client/app',
@@ -33,7 +33,7 @@ const bsConfig = {
   files: ['./build/client/app/css/style.css', './build/client/app/js/*.js', './client/app/*.html'],
 };
 
-write.startWriteStream(`log-${write.getTime(true)}.txt`);
+write.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
 
 const results = [];
 
@@ -51,13 +51,15 @@ const rl = readline.createInterface({
 });
 
 rl.on('SIGINT', () => {
-  write.results(results);
+  FileWriter.writeResultsFile(results);
   rl.close();
 });
 
 let selectorString = '';
 if (!argv.selector) {
+
   if (argv.server) {
+
     console.info('Starting server...');
 
     bs.init(bsConfig);
@@ -71,7 +73,7 @@ if (!argv.selector) {
 
     const perfomance = perf.stop();
 
-    write.log({
+    write.writeLog({
       message: `Executing time: ${perfomance.verboseWords}`,
       logLevel: 'inf',
     })
@@ -80,7 +82,7 @@ if (!argv.selector) {
         rl.close();
       });
   } else {
-    write.log({
+    write.writeLog({
       message: 'selector is empty!',
       logLevel: 'err',
     })
@@ -91,6 +93,7 @@ if (!argv.selector) {
   }
 } else {
   if (Array.isArray(argv.selector)) {
+
     argv.selector.forEach((selector, idx) => {
       selectorString += selector;
 
@@ -115,18 +118,18 @@ if (!argv.selector) {
 
       needle.get(url, (err, res) => {
         if (err || res.statusCode !== 200) {
-          write.log({
+          write.writeLog({
             message: `Status: ${res.statusCode}. Get page ${url} is failed.`,
             logLevel: 'err',
           });
         } else {
           try {
-            write.log({
+            write.writeLog({
               message: `Status: ${res.statusCode}. Scrapping page ${url}.`,
               logLevel: 'inf',
             });
 
-            scrapping({
+            scraping({
               res,
               url,
               queue,
@@ -137,12 +140,13 @@ if (!argv.selector) {
               regexp,
             });
           } catch (e) {
+            // если произойдет ошибк
             Promise.all([
-              write.log({
+              write.writeLog({
                 message: `Parse error on page ${url}\r\n Error: ${e}`,
                 logLevel: 'err',
               }),
-              write.results(results, resultPath),
+              FileWriter.writeResultsFile(results, resultPath),
             ])
               .then(() => {
                 console.error(`Parse error on page ${url}`);
@@ -160,11 +164,11 @@ if (!argv.selector) {
       const perfomance = perf.stop();
 
       Promise.all([
-        write.log({
+        write.writeLog({
           message: `Executing time: ${perfomance.verboseWords}`,
           logLevel: 'inf',
         }),
-        write.results(results, resultPath),
+        FileWriter.writeResultsFile(results, resultPath),
       ])
         .then(() => {
           if (argv.export) {
@@ -189,11 +193,11 @@ if (!argv.selector) {
     queue.push(url);
   } catch (e) {
     Promise.all([
-      write.log({
+      write.writeLog({
         message: `Common error\r\n Error: ${e}`,
         logLevel: 'err',
       }),
-      write.results(results, resultPath),
+      FileWriter.writeResultsFile(results, resultPath),
     ])
       .then(() => {
         console.error('Common error');
@@ -203,7 +207,7 @@ if (!argv.selector) {
   }
 }
 
-write.log({
+write.writeLog({
   message: `Start scrapping with selectors ${selectorString}`,
   logLevel: 'inf',
 });
