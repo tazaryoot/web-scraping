@@ -100,7 +100,7 @@ if (!argv.selector) {
 
   let regexp = null;
   if (argv.regexp) {
-    regexp = new RegExp(argv.regexp);
+    regexp = new RegExp(argv.regexp, 'g');
   }
 
   try {
