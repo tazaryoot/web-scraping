@@ -25,15 +25,20 @@ const resultPath = config.resultPath || './build/client/app/assets/';
 const exportSettings = { ...(config.exportSettings || {}), path: resultPath };
 
 const progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
-const write = new FileWriter();
+const fileWriter = new FileWriter();
 
 const bsConfig = {
   server: './build/client/app',
   port: 4044,
   files: ['./build/client/app/css/style.css', './build/client/app/js/*.js', './client/app/*.html'],
 };
+function exportToCSV() {
+  console.log('Exporting...');
+  fileWriter.initExport2CSV(exportSettings);
+  fileWriter.export2Csv();
+}
 
-write.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
+fileWriter.startWriteStream(`log-${fileWriter.getTime(true)}.txt`);
 
 const results = [];
 
@@ -51,7 +56,7 @@ const rl = readline.createInterface({
 });
 
 rl.on('SIGINT', () => {
-  FileWriter.writeResultsFile(results);
+  fileWriter.writeResultsFile(results);
   rl.close();
 });
 
@@ -66,23 +71,11 @@ if (!argv.selector) {
 
     rl.close();
   } else if (argv.export) {
-    console.log('Exporting...');
+    exportToCSV();
 
-    write.initExport2CSV(exportSettings);
-    write.export2Csv();
-
-    const perfomance = perf.stop();
-
-    write.writeLog({
-      message: `Executing time: ${perfomance.verboseWords}`,
-      logLevel: 'inf',
-    })
-      .then(() => {
-        console.warn(`Executing time: ${perfomance.verboseWords}`);
-        rl.close();
-      });
+    rl.close();
   } else {
-    write.writeLog({
+    fileWriter.writeLog({
       message: 'selector is empty!',
       logLevel: 'err',
     })
@@ -118,13 +111,13 @@ if (!argv.selector) {
 
       needle.get(url, (err, res) => {
         if (err || res.statusCode !== 200) {
-          write.writeLog({
+          fileWriter.writeLog({
             message: `Status: ${res.statusCode}. Get page ${url} is failed.`,
             logLevel: 'err',
           });
         } else {
           try {
-            write.writeLog({
+            fileWriter.writeLog({
               message: `Status: ${res.statusCode}. Scrapping page ${url}.`,
               logLevel: 'inf',
             });
@@ -142,11 +135,11 @@ if (!argv.selector) {
           } catch (e) {
             // если произойдет ошибк
             Promise.all([
-              write.writeLog({
+              fileWriter.writeLog({
                 message: `Parse error on page ${url}\r\n Error: ${e}`,
                 logLevel: 'err',
               }),
-              FileWriter.writeResultsFile(results, resultPath),
+              fileWriter.writeResultsFile(results, resultPath),
             ])
               .then(() => {
                 console.error(`Parse error on page ${url}`);
@@ -160,21 +153,21 @@ if (!argv.selector) {
       });
     });
 
-    queue.drain = function () {
+    queue.drain = () => {
       const perfomance = perf.stop();
 
       Promise.all([
-        write.writeLog({
+        fileWriter.writeLog({
           message: `Executing time: ${perfomance.verboseWords}`,
           logLevel: 'inf',
         }),
-        FileWriter.writeResultsFile(results, resultPath),
+        fileWriter.writeResultsFile(results, resultPath),
       ])
         .then(() => {
           if (argv.export) {
             console.log('Exporting...');
-            write.initExport2CSV(exportSettings);
-            write.export2Csv();
+            fileWriter.initExport2CSV(exportSettings);
+            fileWriter.export2Csv();
           }
           progressBar.stop();
           console.warn(`Executing time: ${perfomance.verboseWords}`);
@@ -193,11 +186,11 @@ if (!argv.selector) {
     queue.push(url);
   } catch (e) {
     Promise.all([
-      write.writeLog({
+      fileWriter.writeLog({
         message: `Common error\r\n Error: ${e}`,
         logLevel: 'err',
       }),
-      FileWriter.writeResultsFile(results, resultPath),
+      fileWriter.writeResultsFile(results, resultPath),
     ])
       .then(() => {
         console.error('Common error');
@@ -207,7 +200,7 @@ if (!argv.selector) {
   }
 }
 
-write.writeLog({
+fileWriter.writeLog({
   message: `Start scrapping with selectors ${selectorString}`,
   logLevel: 'inf',
 });
