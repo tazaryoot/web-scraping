@@ -62,9 +62,7 @@ rl.on('SIGINT', () => {
 
 let selectorString = '';
 if (!argv.selector) {
-
   if (argv.server) {
-
     console.info('Starting server...');
 
     bs.init(bsConfig);
@@ -86,7 +84,6 @@ if (!argv.selector) {
   }
 } else {
   if (Array.isArray(argv.selector)) {
-
     argv.selector.forEach((selector, idx) => {
       selectorString += selector;
 
@@ -104,27 +101,29 @@ if (!argv.selector) {
   }
 
   try {
-    const queue = tress((url, callback) => {
-      if (url.indexOf('http') === -1) {
-        url = `${urlCore}${url}`;
+    const queue = tress((pageURL, callback) => {
+      let fullURL = pageURL;
+
+      if (fullURL.indexOf('http') === -1) {
+        fullURL = `${urlCore}${pageURL}`;
       }
 
-      needle.get(url, (err, res) => {
+      needle.get(fullURL, (err, res) => {
         if (err || res.statusCode !== 200) {
           fileWriter.writeLog({
-            message: `Status: ${res.statusCode}. Get page ${url} is failed.`,
+            message: `Status: ${res.statusCode}. Get page ${fullURL} is failed.`,
             logLevel: 'err',
           });
         } else {
           try {
             fileWriter.writeLog({
-              message: `Status: ${res.statusCode}. Scrapping page ${url}.`,
+              message: `Status: ${res.statusCode}. Scrapping page ${fullURL}.`,
               logLevel: 'inf',
             });
 
             scraping({
               res,
-              url,
+              url: fullURL,
               queue,
               results,
               selectorString,
@@ -136,13 +135,13 @@ if (!argv.selector) {
             // если произойдет ошибк
             Promise.all([
               fileWriter.writeLog({
-                message: `Parse error on page ${url}\r\n Error: ${e}`,
+                message: `Parse error on page ${fullURL}\r\n Error: ${e}`,
                 logLevel: 'err',
               }),
               fileWriter.writeResultsFile(results, resultPath),
             ])
               .then(() => {
-                console.error(`Parse error on page ${url}`);
+                console.error(`Parse error on page ${fullURL}`);
                 setTimeout(() => { process.exit(-1); }, 1000);
               })
               .catch();
@@ -154,11 +153,11 @@ if (!argv.selector) {
     });
 
     queue.drain = () => {
-      const perfomance = perf.stop();
+      const performance = perf.stop();
 
       Promise.all([
         fileWriter.writeLog({
-          message: `Executing time: ${perfomance.verboseWords}`,
+          message: `Executing time: ${performance.verboseWords}`,
           logLevel: 'inf',
         }),
         fileWriter.writeResultsFile(results, resultPath),
@@ -170,7 +169,7 @@ if (!argv.selector) {
             fileWriter.export2Csv();
           }
           progressBar.stop();
-          console.warn(`Executing time: ${perfomance.verboseWords}`);
+          console.warn(`Executing time: ${performance.verboseWords}`);
 
           rl.close();
 
