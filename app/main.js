@@ -2,8 +2,7 @@ const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
 const cliProgress = require('cli-progress');
-const bs = require('browser-sync').create();
-const { argv } = require('yargs');
+const yargs = require('yargs');
 const readline = require('readline');
 
 const FileWriter = require('./lib/fileWriter');
@@ -17,20 +16,17 @@ if (!config.urlCore) {
 }
 
 const scraping = require(config.scrapingModulePath);
-const { urlCore } = config;
+const {
+  urlCore,
+  excludeURL,
+  resultPath,
+} = config;
 const url = config.urlMap || urlCore;
-const { excludeURL } = config;
-const resultPath = config.resultPath || './build/client/app/assets/';
 const exportSettings = { ...(config.exportSettings || {}), path: resultPath };
 
 const progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
 const fileWriter = new FileWriter();
 
-const bsConfig = {
-  server: './build/client/app',
-  port: 4044,
-  files: ['./build/client/app/css/style.css', './build/client/app/js/*.js', './client/app/*.html'],
-};
 function exportToCSV() {
   console.log('Exporting...');
   fileWriter.initExport2CSV(exportSettings);
@@ -42,10 +38,6 @@ fileWriter.startWriteStream(`log-${fileWriter.getTime(true)}.txt`);
 const results = [];
 
 perf.start();
-
-/* needle.defaults({
-  open_timeout: 50
-}); */
 
 console.info('Starting...');
 
@@ -59,29 +51,24 @@ rl.on('SIGINT', () => {
   rl.close();
 });
 
+// Option list
+yargs
+  .option('selector', { alias: 's', describe: 'css selector string' })
+  .option('exporting', { alias: 'e', describe: 'export to csv' })
+  .option('regex', { alias: 'r', describe: 'regular expression string' });
+
+const { argv } = yargs;
+
+// export
+if (!argv.selector && argv.exporting) {
+  exportToCSV();
+
+  rl.close();
+}
+
+// search
 let selectorString = '';
-if (!argv.selector) {
-  if (argv.server) {
-    console.info('Starting server...');
-
-    bs.init(bsConfig);
-
-    rl.close();
-  } else if (argv.export) {
-    exportToCSV();
-
-    rl.close();
-  } else {
-    fileWriter.writeLog({
-      message: 'selector is empty!',
-      logLevel: 'err',
-    })
-      .then(() => {
-        console.error('selector is empty!');
-        setTimeout(() => { process.exit(-1); }, 1000);
-      });
-  }
-} else {
+if (argv.selector) {
   if (Array.isArray(argv.selector)) {
     argv.selector.forEach((selector, idx) => {
       selectorString += selector;
@@ -95,8 +82,9 @@ if (!argv.selector) {
   }
 
   let regexp = null;
-  if (argv.regexp) {
-    regexp = new RegExp(argv.regexp, 'g');
+
+  if (argv.regex) {
+    regexp = new RegExp(argv.regex, 'g');
   }
 
   try {
@@ -162,7 +150,7 @@ if (!argv.selector) {
         fileWriter.writeResultsFile(results, resultPath),
       ])
         .then(() => {
-          if (argv.export) {
+          if (argv.exporting) {
             console.log('Exporting...');
             fileWriter.initExport2CSV(exportSettings);
             fileWriter.export2Csv();
@@ -171,12 +159,6 @@ if (!argv.selector) {
           console.warn(`Executing time: ${performance.verboseWords}`);
 
           rl.close();
-
-          if (argv.server) {
-            console.info('Starting server...');
-
-            bs.init(bsConfig);
-          }
         })
         .catch();
     };

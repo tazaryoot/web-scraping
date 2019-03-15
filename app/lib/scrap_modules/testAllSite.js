@@ -100,9 +100,8 @@ function scraping({
     });
   });
 
-  if (!progressValue) {
-    progressBar.update(++progressValue);
-  }
+  progressValue += 1;
+  progressBar.update(progressValue);
 }
 
 module.exports = scraping;
