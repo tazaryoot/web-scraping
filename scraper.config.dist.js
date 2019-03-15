@@ -3,7 +3,7 @@ const config = {
   urlMap: '',
   scrapingModulePath: './lib/scrap_modules/testAllSite',
   excludeURL: /http|-de|-en|javascript:|\/f\/|mailto:|tel:|\/#/,
-  resultPath: './build/client/app/assets/',
+  resultPath: '',
   exportSettings: {
     fields: ['page', 'title', { label: 'tag', value: 'tags.name' }, { label: 'text', value: 'tags.list.text' }],
     unwind: ['tags', 'tags.list'],

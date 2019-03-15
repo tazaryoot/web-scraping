@@ -2,7 +2,7 @@
 
 /**
  * @typedef {object} PageCountParams
- * @property {array} data
+ * @property {array} client
  * @property {number} step
  */
 /**

@@ -40,7 +40,6 @@ testem.log
 /results
 result*.*
 1.*
-*-lock.json
 log**.txt
 map.txt
 scraper.config.js
