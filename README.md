@@ -1,12 +1,12 @@
 Web Scraping
 =============
 
-##Usage
+## Usage
  
 ```sh
 npm start [ options... ]
 ```
-##Options
+## Options
 
 
 ##### `-s, --selector` 
@@ -16,7 +16,7 @@ npm start [ options... ]
 ##### `-e, --exporting`
 экспорт найденных элементов в csv файл;
   
-##Configuration
+## Configuration
 
 ##### `urlCore`
 указывается адрес сайта;
