@@ -9,34 +9,34 @@ npm start [ options... ]
 ##Options
 
 
-#####`-s, --selector` 
+##### `-s, --selector` 
 строка css-селектор, для поиска элементов;
-#####`-r, --regex`
+##### `-r, --regex`
 регулярное выражения для уточнения поиска
-#####`-e, --exporting`
+##### `-e, --exporting`
 экспорт найденных элементов в csv файл;
   
 ##Configuration
 
-#####`urlCore`
+##### `urlCore`
 указывается адрес сайта;
  
-#####`urlMap`
+##### `urlMap`
 указывается адрес карты сайта (не обязательно);
 
-#####`scrapingModulePath`
+##### `scrapingModulePath`
 указывается функция, котрая будет искать требуемой на переданных ей страницах;
 
-#####`excludeURL`
+##### `excludeURL`
 регулярка для фильтра ненужных страниц (не обязательно);
 
-#####`resultPath`
+##### `resultPath`
 путь, по которому будет сохранен результат (не обязательно);
 
-#####`exportSettings`
+##### `exportSettings`
 экспорт делается бибилотекой [json2csv](https://www.npmjs.com/package/json2csv), поэтому настройки смотреть нужно там
  
- ```json
+ ```js
  const config = {
    urlCore: string,
    urlMap?: string,
