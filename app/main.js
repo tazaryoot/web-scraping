@@ -15,6 +15,7 @@ if (!config.urlCore) {
   throw new Error('urlCore not set');
 }
 
+// eslint-disable-next-line import/no-dynamic-require
 const scraping = require(config.scrapingModulePath);
 const {
   urlCore,
@@ -22,7 +23,7 @@ const {
   resultPath,
 } = config;
 const url = config.urlMap || urlCore;
-const exportSettings = { ...(config.exportSettings || {}), path: resultPath };
+const exportSettings = { ...(config.exportSettings || {}), path: (resultPath || '') };
 
 const progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
 const fileWriter = new FileWriter();
@@ -33,7 +34,7 @@ function exportToCSV() {
   fileWriter.export2Csv();
 }
 
-fileWriter.startWriteStream(`log-${fileWriter.getTime(true)}.txt`);
+fileWriter.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
 
 const results = [];
 
@@ -47,7 +48,7 @@ const rl = readline.createInterface({
 });
 
 rl.on('SIGINT', () => {
-  fileWriter.writeResultsFile(results);
+  FileWriter.writeResultsFile(results);
   rl.close();
 });
 
@@ -125,7 +126,7 @@ if (argv.selector) {
                 message: `Parse error on page ${fullURL}\r\n Error: ${e}`,
                 logLevel: 'err',
               }),
-              fileWriter.writeResultsFile(results, resultPath),
+              FileWriter.writeResultsFile(results, resultPath),
             ])
               .then(() => {
                 console.error(`Parse error on page ${fullURL}`);
@@ -147,7 +148,7 @@ if (argv.selector) {
           message: `Executing time: ${performance.verboseWords}`,
           logLevel: 'inf',
         }),
-        fileWriter.writeResultsFile(results, resultPath),
+        FileWriter.writeResultsFile(results, resultPath),
       ])
         .then(() => {
           if (argv.exporting) {
@@ -170,7 +171,7 @@ if (argv.selector) {
         message: `Common error\r\n Error: ${e}`,
         logLevel: 'err',
       }),
-      fileWriter.writeResultsFile(results, resultPath),
+      FileWriter.writeResultsFile(results, resultPath),
     ])
       .then(() => {
         console.error('Common error');

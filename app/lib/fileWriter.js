@@ -37,36 +37,11 @@ class FileWriter {
       .pipe(this.csvOutputStream);
   }
 
-  pad(n) {
-    return n < 10 ? `0${n}` : n;
-  }
-
-  getTime(short) {
-    const date = new Date();
-    let time = `${date.getFullYear()}-${this.pad(date.getMonth() + 1)}-${this.pad(date.getDate())}`;
-
-    if (!short) {
-      time += `T${this.pad(date.getHours())}:${this.pad(date.getMinutes())}:${this.pad(date.getSeconds())}`;
-    }
-    return time;
-  }
-
-  writeResultsFile(results, path = './') {
-    return new Promise((resolve, reject) => {
-      try {
-        fs.writeFileSync(`${path}result.json`, JSON.stringify(results, null, 4, 'utf-8'));
-        resolve();
-      } catch (e) {
-        reject();
-      }
-    });
-  }
-
   writeLog(logObj) {
     return new Promise((resolve, reject) => {
       try {
         const { message, logLevel } = logObj;
-        this.writeStream.write(`[${this.getTime()}][${logLevel}] ${message}\r\n`);
+        this.writeStream.write(`[${FileWriter.getTime()}][${logLevel}] ${message}\r\n`);
         resolve();
       } catch (e) {
         reject();
@@ -78,6 +53,31 @@ class FileWriter {
     return new Promise((resolve, reject) => {
       try {
         this.writeStream.write(`${message}\r\n`);
+        resolve();
+      } catch (e) {
+        reject();
+      }
+    });
+  }
+
+  static pad(n) {
+    return n < 10 ? `0${n}` : n;
+  }
+
+  static getTime(short) {
+    const date = new Date();
+    let time = `${date.getFullYear()}-${FileWriter.pad(date.getMonth() + 1)}-${FileWriter.pad(date.getDate())}`;
+
+    if (!short) {
+      time += `T${FileWriter.pad(date.getHours())}:${FileWriter.pad(date.getMinutes())}:${FileWriter.pad(date.getSeconds())}`;
+    }
+    return time;
+  }
+
+  static writeResultsFile(results, path = './') {
+    return new Promise((resolve, reject) => {
+      try {
+        fs.writeFileSync(`${path}result.json`, JSON.stringify(results, null, 4, 'utf-8'));
         resolve();
       } catch (e) {
         reject();
