@@ -21,8 +21,10 @@
     "yargs": "^15.0.2"
   },
   "devDependencies": {
+    "@types/node": "^13.1.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.19.1"
+    "eslint-plugin-import": "^2.19.1",
+    "typescript": "^3.7.4"
   }
 }
