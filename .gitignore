@@ -38,7 +38,8 @@ yarn-error.log
 testem.log
 /typings
 /results
-result*.*
+result.csv
+result.json
 1.*
 log**.txt
 map.txt

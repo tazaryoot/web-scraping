@@ -5,10 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev-watch": "webpack --watch"
+    "build": "npm run build-ts",
+    "ts-node": "ts-node",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w"
   },
   "author": "tazaryoot09",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
     "cli-progress": "^3.4.0",
