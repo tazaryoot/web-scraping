@@ -2,6 +2,7 @@ import { Interface as Readline } from 'readline';
 import { CliArguments } from './interfaces/cli-arguments';
 
 import { ExportToCsvParams } from './interfaces/export-to-csv-params';
+import { ResultItem } from './interfaces/result-item';
 import { FileWriter } from './lib/fileWriter';
 import { scraping } from './lib/scrap_modules/testAllSite';
 import config from './scraper.config';
@@ -14,7 +15,7 @@ const cliProgress = require('cli-progress');
 
 export default class Main {
   private fileWriter: FileWriter;
-  private results: any = [];
+  private results: ResultItem[] = [];
   private argv: CliArguments;
   private queue: any;
   private readonly progressBar: any;
@@ -48,6 +49,7 @@ export default class Main {
   }
 
 
+  // Метод стартует поиск
   public async startSearch(): Promise<void> {
     console.info('Starting...');
 
@@ -73,6 +75,7 @@ export default class Main {
   }
 
 
+  // Метод экспортирует данные в CSV
   public exportToCSV(): void {
     console.log('Exporting...');
     this.fileWriter.initExport2CSV(this.exportSettings);
@@ -80,6 +83,7 @@ export default class Main {
   }
 
 
+  // Метод обрабатывает очередь запросов
   private queueHandler(): void {
     this.queue = tress(this.tressHandler);
 
@@ -89,6 +93,7 @@ export default class Main {
   }
 
 
+  // Метод запрашивает страницы из очереди
   private async tressHandler(pageURL: string, callback: any) {
     let fullURL = pageURL;
 
@@ -111,7 +116,7 @@ export default class Main {
         message: e,
         logLevel: 'err',
       });
-      await FileWriter.writeResultsFile(this.results, config.resultPath)
+      await FileWriter.writeResultsFile(this.results, config.resultPath);
     }
     finally {
       callback();
@@ -119,6 +124,7 @@ export default class Main {
   }
 
 
+  // Метод завершает обработку очереди
   private async drain(): Promise<void> {
     const performance = perf.stop();
 
@@ -133,12 +139,15 @@ export default class Main {
       this.fileWriter.initExport2CSV(this.exportSettings);
       this.fileWriter.export2Csv();
     }
+
+    this.fileWriter.endWriteStream();
     this.progressBar.stop();
     console.warn(`Executing time: ${performance.verboseWords}`);
     this.rl.close();
   }
 
 
+  // Метод обрадатывет полученные данные
   private responseHandler(response: any, url: string): void {
     const { statusCode } = response;
 
@@ -168,6 +177,7 @@ export default class Main {
   }
 
 
+  // Метод формирует строку css селекта
   private createSelectorString(): void {
     if (Array.isArray(this.argv.selector)) {
       this.argv.selector.forEach((selector: string, idx: number) => {
@@ -183,6 +193,7 @@ export default class Main {
   }
 
 
+  // Метод формирует регулярку
   private createRegEx(): void {
     if (this.argv.regex) {
       this.regexp = new RegExp(this.argv.regex, 'g');

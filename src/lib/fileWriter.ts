@@ -2,6 +2,7 @@ import { ReadStream, WriteStream } from 'fs';
 
 import { ExportToCsvParams } from '../interfaces/export-to-csv-params';
 import { LoggerParams } from '../interfaces/logger-params';
+import { ResultItem } from '../interfaces/result-item';
 
 const fs = require('fs');
 const Json2csvTransform = require('json2csv').Transform;
@@ -94,7 +95,7 @@ export class FileWriter {
     return time;
   }
 
-  static writeResultsFile(results: Record<string, string>, path = './') {
+  static writeResultsFile(results: ResultItem[], path = './') {
     return new Promise((resolve, reject) => {
       try {
         // @ts-ignore

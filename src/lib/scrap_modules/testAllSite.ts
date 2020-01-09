@@ -50,7 +50,7 @@ export function scraping(params: ScrapingParams) {
       });
     }
 
-    aList.each(function () {
+    aList.each(async function () {
       // @ts-ignore
       const link = $(this).attr('href');
 
@@ -59,7 +59,7 @@ export function scraping(params: ScrapingParams) {
         count += 1;
 
         queuedLinkList.push(link);
-        fileWriter.writeMessageInStream(`{page: "${link}"},`);
+        await fileWriter.writeMessageInStream(`{page: "${link}"},`);
         queue.push(/^\//.test(link) ? link : `/${link}`);
         progressBar.setTotal(queuedLinkList.length);
       }
