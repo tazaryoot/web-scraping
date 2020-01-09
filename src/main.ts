@@ -1,5 +1,6 @@
 import { Interface as Readline } from 'readline';
 import { CliArguments } from './interfaces/cli-arguments';
+
 import { ExportToCsvParams } from './interfaces/export-to-csv-params';
 import { FileWriter } from './lib/fileWriter';
 import { scraping } from './lib/scrap_modules/testAllSite';
@@ -15,7 +16,6 @@ export default class Main {
   private fileWriter: FileWriter;
   private results: any = [];
   private argv: CliArguments;
-  private fullURL: string;
   private queue: any;
   private readonly progressBar: any;
   private readonly url: string;
@@ -30,7 +30,6 @@ export default class Main {
     this.url = config.urlMap || config.urlCore;
     this.argv = argv;
     this.rl = rl;
-    this.fullURL = '';
     this.selectorString = '';
     this.exportSettings = {
       fields: ['page', 'title', { label: 'tag', value: 'tags.name' }, { label: 'text', value: 'tags.list.text' }],
@@ -41,6 +40,8 @@ export default class Main {
     this.fileWriter.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
 
     perf.start();
+    this.tressHandler = this.tressHandler.bind(this);
+    this.drain = this.drain.bind(this);
 
     this.createSelectorString();
     this.createRegEx();
@@ -80,70 +81,89 @@ export default class Main {
 
 
   private queueHandler(): void {
-    this.queue = tress(async (pageURL: string, callback: any) => {
-      this.fullURL = pageURL;
+    this.queue = tress(this.tressHandler);
 
-      if (this.fullURL.indexOf('http') === -1) {
-        this.fullURL = `${config.urlCore}${pageURL}`;
-      }
-
-      needle('get', this.fullURL)
-        .then((response: any) => {
-          this.responseHandler(response)
-        })
-        .catch(async (error: string) => {
-          await this.fileWriter.writeLog({
-            message: error,
-            logLevel: 'err',
-          });
-          await FileWriter.writeResultsFile(this.results, config.resultPath)
-
-        })
-        .finally(() => {
-          callback();
-        });
-
-
-      const response = await needle('get', this.fullURL);
-      const {statusCode} = response;
-
-      if (statusCode !== 200) {
-        throw new Error(`Status: ${statusCode}. Get page ${this.fullURL} is failed.`);
-      }
-
-    });
-
-    this.queue.drain = () => this.drain();
+    this.queue.drain = this.drain;
 
     this.queue.push(this.url);
   }
 
 
-  private responseHandler(response: any): void {
+  private async tressHandler(pageURL: string, callback: any) {
+    let fullURL = pageURL;
+
+    if (fullURL.indexOf('http') === -1) {
+      fullURL = `${config.urlCore}${pageURL}`;
+    }
+
+    try {
+      const response = await needle('get', fullURL);
+      const { statusCode } = response;
+
+      if (statusCode !== 200) {
+        throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
+      }
+
+      this.responseHandler(response, fullURL)
+    }
+    catch (e) {
+      await this.fileWriter.writeLog({
+        message: e,
+        logLevel: 'err',
+      });
+      await FileWriter.writeResultsFile(this.results, config.resultPath)
+    }
+    finally {
+      callback();
+    }
+  }
+
+
+  private async drain(): Promise<void> {
+    const performance = perf.stop();
+
+    await this.fileWriter.writeLog({
+      message: `Executing time: ${performance.verboseWords}`,
+      logLevel: 'inf',
+    });
+    await FileWriter.writeResultsFile(this.results, config.resultPath);
+
+    if (this.argv.exporting) {
+      console.log('Exporting...');
+      this.fileWriter.initExport2CSV(this.exportSettings);
+      this.fileWriter.export2Csv();
+    }
+    this.progressBar.stop();
+    console.warn(`Executing time: ${performance.verboseWords}`);
+    this.rl.close();
+  }
+
+
+  private responseHandler(response: any, url: string): void {
     const { statusCode } = response;
 
     if (statusCode !== 200) {
-      throw new Error(`Status: ${statusCode}. Get page ${this.fullURL} is failed.`);
+      throw new Error(`Status: ${statusCode}. Get page ${url} is failed.`);
     }
 
     this.fileWriter.writeLog({
-      message: `Status: ${statusCode}. Scrapping page ${this.fullURL}.`,
+      message: `Status: ${statusCode}. Scrapping page ${url}.`,
       logLevel: 'inf',
-    });
+    }).then();
 
     try {
       scraping({
-        url: this.fullURL,
         results: this.results,
         progressBar: this.progressBar,
         excludeURL: config.excludeURL,
         queue: this.queue,
         selectorString: this.selectorString,
         regexp: this.regexp,
+        url,
         response,
       });
     } catch (e) {
-      throw new Error(`Parse error on page ${this.fullURL}\\r\\n Error: ${e}`)
+      throw new Error(`Parse error on page ${url}\\r\\n Error: ${e}`)
     }
   }
 
@@ -169,23 +189,4 @@ export default class Main {
     }
   }
 
-
-  private async drain(): Promise<void> {
-    const performance = perf.stop();
-
-    await this.fileWriter.writeLog({
-      message: `Executing time: ${performance.verboseWords}`,
-      logLevel: 'inf',
-    });
-    await FileWriter.writeResultsFile(this.results, config.resultPath);
-
-    if (this.argv.exporting) {
-      console.log('Exporting...');
-      this.fileWriter.initExport2CSV(this.exportSettings);
-      this.fileWriter.export2Csv();
-    }
-    this.progressBar.stop();
-    console.warn(`Executing time: ${performance.verboseWords}`);
-    this.rl.close();
-  }
 }
