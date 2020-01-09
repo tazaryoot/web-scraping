@@ -23,7 +23,7 @@ fileWriter.writeMessageInStream('{').then(() => {});
  */
 export function scraping(params: ScrapingParams) {
   const {
-    res,
+    response,
     queue,
     results,
     selectorString,
@@ -37,7 +37,7 @@ export function scraping(params: ScrapingParams) {
     progressBar.start(progressValue + 1, progressValue);
   }
 
-  const $ = cheerio.load(res.body);
+  const $ = cheerio.load(response.body);
   const area = $('body');
 
   if (!limit || count < limit) {

@@ -1,12 +1,12 @@
 import { ResultItem } from './result-item';
 
 export interface ScrapingParams {
-  res: any,
+  response: any,
   queue: any,
   results: ResultItem[],
   selectorString: string,
   url: string,
-  excludeURL: string,
+  excludeURL: RegExp,
   progressBar: any,
-  regexp: RegExp,
+  regexp?: RegExp,
 }
