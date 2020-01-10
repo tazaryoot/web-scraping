@@ -10,7 +10,7 @@ const fileWriter = new FileWriter();
 
 const queuedLinkList: any = [];
 let count = 0;
-let limit = 100;
+let limit: number;
 let progressValue = 0;
 
 fileWriter.startWriteStream('map.txt');
@@ -50,7 +50,7 @@ export function scraping(params: ScrapingParams) {
       });
     }
 
-    aList.each(async function () {
+    aList.each(function () {
       // @ts-ignore
       const link = $(this).attr('href');
 
@@ -59,7 +59,7 @@ export function scraping(params: ScrapingParams) {
         count += 1;
 
         queuedLinkList.push(link);
-        await fileWriter.writeMessageInStream(`{page: "${link}"},`);
+        fileWriter.writeMessageInStream(`{page: "${link}"},`).then();
         queue.push(/^\//.test(link) ? link : `/${link}`);
         progressBar.setTotal(queuedLinkList.length);
       }

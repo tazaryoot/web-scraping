@@ -94,7 +94,7 @@ export default class Main {
 
 
   // Метод запрашивает страницы из очереди
-  private async tressHandler(pageURL: string, callback: any) {
+  private async tressHandler(pageURL: string, callback: Function) {
     let fullURL = pageURL;
 
     if (fullURL.indexOf('http') === -1) {
@@ -104,7 +104,6 @@ export default class Main {
     try {
       const response = await needle('get', fullURL);
       const { statusCode } = response;
-
       if (statusCode !== 200) {
         throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
       }
