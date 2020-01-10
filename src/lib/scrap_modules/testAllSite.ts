@@ -81,7 +81,6 @@ export function scraping(params: ScrapingParams) {
     results.push({
       page: url,
       title: $('title').text(),
-      path: url.replace(/(http:\/\/t02.gazprom.dev.design.ru\/?)|(\/$)/g, '').split('/'),
       tags: [],
     });
     resultsLength += 1;

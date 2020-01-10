@@ -99,7 +99,7 @@ export class FileWriter {
     return new Promise((resolve, reject) => {
       try {
         // @ts-ignore
-        fs.writeFileSync(`${path}result.json`, JSON.stringify(results, null, 4, 'utf-8'));
+        fs.writeFileSync(`${path}result.json`, JSON.stringify(results, null, 2, 'utf-8'));
         resolve();
       } catch (e) {
         reject();
