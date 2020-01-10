@@ -104,11 +104,17 @@ export default class Main {
     try {
       const response = await needle('get', fullURL);
       const { statusCode } = response;
-      if (statusCode !== 200) {
-        throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
-      }
 
-      this.responseHandler(response, fullURL)
+      if (statusCode >= 300 && statusCode < 400) {
+        const location = response.headers.location;
+
+        this.queue.push(location);
+
+      } else if (statusCode !== 200) {
+        throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
+      } else {
+        this.responseHandler(response, fullURL)
+      }
     }
     catch (e) {
       await this.fileWriter.writeLog({
@@ -149,10 +155,6 @@ export default class Main {
   // Метод обрадатывет полученные данные
   private responseHandler(response: any, url: string): void {
     const { statusCode } = response;
-
-    if (statusCode !== 200) {
-      throw new Error(`Status: ${statusCode}. Get page ${url} is failed.`);
-    }
 
     this.fileWriter.writeLog({
       message: `Status: ${statusCode}. Scrapping page ${url}.`,
