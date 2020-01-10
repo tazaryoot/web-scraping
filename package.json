@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "build": "npm run build-ts",
+    "watch": "npm run watch-ts",
     "ts-node": "ts-node",
     "build-ts": "tsc",
     "watch-ts": "tsc -w"
