@@ -64,11 +64,11 @@ export default class Main {
       console.error('Error');
 
       await this.fileWriter.writeLog({
-        message: `Common error\r\n Error: ${e}`,
+        message: `Global error\r\n Error: ${e}`,
         logLevel: 'err',
       });
 
-      await FileWriter.writeResultsFile(this.results, config.resultPath);
+      this.safetyWriteResult();
 
       setTimeout(() => { process.exit(-1); }, 1000);
     }
@@ -121,7 +121,6 @@ export default class Main {
         message: e,
         logLevel: 'err',
       });
-      await FileWriter.writeResultsFile(this.results, config.resultPath);
     }
     finally {
       callback();
@@ -137,7 +136,7 @@ export default class Main {
       message: `Executing time: ${performance.verboseWords}`,
       logLevel: 'inf',
     });
-    await FileWriter.writeResultsFile(this.results, config.resultPath);
+    await this.safetyWriteResult();
 
     if (this.argv.exporting) {
       console.log('Exporting...');
@@ -198,6 +197,17 @@ export default class Main {
   private createRegEx(): void {
     if (this.argv.regex) {
       this.regexp = new RegExp(this.argv.regex, 'g');
+    }
+  }
+
+  private async safetyWriteResult(): Promise<void> {
+    try {
+      await FileWriter.writeResultsFile(this.results, config.resultPath);
+    } catch (e) {
+      await this.fileWriter.writeLog({
+        message: `Cannot write result\r\n Error: ${e}`,
+        logLevel: 'err',
+      });
     }
   }
 

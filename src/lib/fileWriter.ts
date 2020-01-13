@@ -61,7 +61,8 @@ export class FileWriter {
 
         resolve();
       } catch (e) {
-        reject();
+        console.error(`Write log error`, e);
+        reject(e);
       }
     });
   }
@@ -76,7 +77,7 @@ export class FileWriter {
         }
         resolve();
       } catch (e) {
-        reject();
+        reject(e);
       }
     });
   }
@@ -102,7 +103,7 @@ export class FileWriter {
         fs.writeFileSync(`${path}result.json`, JSON.stringify(results, null, 2, 'utf-8'));
         resolve();
       } catch (e) {
-        reject();
+        reject(e);
       }
     });
   }
