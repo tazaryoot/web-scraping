@@ -1,7 +1,4 @@
-interface list {
-  text: string;
-  html: string;
-}
+type list = Record<string, string>
 
 export interface ResultTagItem {
   name: string,
