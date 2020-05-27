@@ -4,7 +4,7 @@
   "description": "",
   "main": "/build/index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node build/index.js",
     "build": "npm run build-ts",
     "watch": "npm run watch-ts",
     "ts-node": "ts-node",
@@ -29,6 +29,7 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.19.1",
+    "ts-node": "^8.10.1",
     "typescript": "^3.7.4"
   }
 }
