@@ -104,8 +104,8 @@ export function scraping(params: ScrapingParams) {
     }
 
     tags[idx].list.push({
-      text: $element.text(),
-      html: entities.decode($('<div></div>').html($element.clone()).html()),
+      classes: $element[0].attribs.class,
+      id: $element[0].attribs.id,
     });
   });
 
