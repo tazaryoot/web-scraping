@@ -9,12 +9,18 @@ npm start [ options... ]
 ## Options
 
 
-##### `-s, --selector` 
+```-s, --selector```
 строка css-селектор, для поиска элементов;
-##### `-r, --regex`
+
+```-r, --regex```
 регулярное выражения для уточнения поиска
-##### `-e, --exporting`
+
+```-e, --exporting```
 экспорт найденных элементов в csv файл;
+
+**Пример запроса**
+
+```--selector .zopa,#made_in,#sitemap_cont```
   
 ## Configuration
 
