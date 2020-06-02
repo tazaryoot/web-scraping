@@ -1,11 +1,9 @@
 const cheerio = require('cheerio');
-const Entities = require('html-entities').XmlEntities;
 
 import { ResultTagItem } from '../../interfaces/result-tag-item';
 import { ScrapingParams } from '../../interfaces/scraping-params';
 import { FileWriter } from '../fileWriter';
 
-const entities = new Entities();
 const fileWriter = new FileWriter();
 
 const queuedLinkList: any = [];
