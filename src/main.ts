@@ -61,7 +61,7 @@ export default class Main {
     try {
       this.queueHandler();
     } catch (e) {
-      console.error('Error');
+      console.error(`Error ${e}`);
 
       await this.fileWriter.writeLog({
         message: `Global error\r\n Error: ${e}`,
@@ -94,60 +94,64 @@ export default class Main {
 
 
   // Метод запрашивает страницы из очереди
-  private async tressHandler(pageURL: string, callback: Function) {
-    let fullURL = pageURL;
+  private tressHandler(pageURL: string, callback: Function) {
+    (async () => {
+      let fullURL = pageURL;
 
-    if (fullURL.indexOf('http') === -1) {
-      fullURL = `${config.urlCore}${pageURL}`;
-    }
-
-    try {
-      const response = await needle('get', fullURL);
-      const { statusCode } = response;
-
-      if (statusCode >= 300 && statusCode < 400) {
-        const location = response.headers.location;
-
-        this.queue.push(location);
-
-      } else if (statusCode !== 200) {
-        throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
-      } else {
-        this.responseHandler(response, fullURL)
+      if (fullURL.indexOf('http') === -1) {
+        fullURL = `${config.urlCore}${pageURL}`;
       }
-    }
-    catch (e) {
-      await this.fileWriter.writeLog({
-        message: e,
-        logLevel: 'err',
-      });
-    }
-    finally {
-      callback();
-    }
+
+      try {
+        const response = await needle('get', fullURL);
+        const { statusCode } = response;
+
+        if (statusCode >= 300 && statusCode < 400) {
+          const location = response.headers.location;
+
+          this.queue.push(location);
+
+        } else if (statusCode !== 200) {
+          throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
+        } else {
+          this.responseHandler(response, fullURL)
+        }
+      }
+      catch (e) {
+        await this.fileWriter.writeLog({
+          message: e,
+          logLevel: 'err',
+        });
+      }
+      finally {
+        callback();
+      }
+    })()
   }
 
 
   // Метод завершает обработку очереди
-  private async drain(): Promise<void> {
-    const performance = perf.stop();
+  private drain(): void {
+    (async () => {
+      const performance = perf.stop();
 
-    await this.fileWriter.writeLog({
-      message: `Executing time: ${performance.verboseWords}`,
-      logLevel: 'inf',
-    });
-    await this.safetyWriteResult();
+      await this.fileWriter.writeLog({
+        message: `Executing time: ${performance.verboseWords}`,
+        logLevel: 'inf',
+      });
+      await this.safetyWriteResult();
 
-    if (this.argv.exporting) {
-      console.log('Exporting...');
-      this.fileWriter.initExport2CSV(this.exportSettings);
-      this.fileWriter.export2Csv();
-    }
+      if (this.argv.exporting) {
+        console.log('Exporting...');
+        this.fileWriter.initExport2CSV(this.exportSettings);
+        this.fileWriter.export2Csv();
+      }
 
-    this.fileWriter.endWriteStream();
-    this.progressBar.stop();
-    console.warn(`Executing time: ${performance.verboseWords}`);
-    this.rl.close();
+      this.fileWriter.endWriteStream();
+      this.progressBar.stop();
+      console.warn(`Executing time: ${performance.verboseWords}`);
+      this.rl.close();
+    })();
   }
 
 

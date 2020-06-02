@@ -4,9 +4,6 @@ import config from './scraper.config';
 const yargs = require('yargs');
 const readline = require('readline');
 
-if (!config.scrapingModulePath) {
-  throw new Error('scrapingModulePath not set');
-}
 if (!config.urlCore) {
   throw new Error('urlCore not set');
 }
