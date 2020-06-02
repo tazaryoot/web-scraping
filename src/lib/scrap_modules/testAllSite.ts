@@ -101,10 +101,21 @@ export function scraping(params: ScrapingParams) {
       idx = tags.length - 1;
     }
 
-    tags[idx].list.push({
-      classes: $element[0].attribs.class,
-      id: $element[0].attribs.id,
-    });
+    if ($element[0]) {
+      const element = $element[0];
+      const listItem: Record<string, string> = {};
+
+      if (element.attribs?.classes) {
+        listItem.classes = element.attribs.classes;
+      }
+      if (element.attribs?.id) {
+        listItem.id = element.attribs?.id;
+      }
+
+      if (Object.keys(listItem).length) {
+        tags[idx].list.push(listItem);
+      }
+    }
   });
 
   progressValue += 1;
