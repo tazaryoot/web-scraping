@@ -26,4 +26,12 @@ export default [
     },
     plugins: plugins('ES2019'),
   },
+  {
+    input: 'src/scraper.config.js',
+    output: {
+      file: 'build/scraper.config.js',
+      format: 'cjs',
+    },
+    plugins: plugins('ES2019'),
+  },
 ];

@@ -30,9 +30,6 @@ npm start [ options... ]
 ##### `urlMap`
 указывается адрес карты сайта (не обязательно);
 
-##### `scrapingModulePath`
-указывается функция, котрая будет искать требуемой на переданных ей страницах;
-
 ##### `excludeURL`
 регулярка для фильтра ненужных страниц (не обязательно);
 
@@ -42,12 +39,11 @@ npm start [ options... ]
 ##### `exportSettings`
 экспорт делается бибилотекой [json2csv](https://www.npmjs.com/package/json2csv), поэтому настройки смотреть нужно там
  
- ```js
- const config = {
+ ```typescript
+ type Config = {
    urlCore: string,
    urlMap?: string,
-   scrapingModulePath: string,
-   excludeURL?: regex,
+   excludeURL?: RegExp,
    resultPath?: string,
    exportSettings: object,
  };

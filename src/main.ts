@@ -1,16 +1,17 @@
 import { Interface as Readline } from 'readline';
 import { CliArguments } from './interfaces/cli-arguments';
 
+import { Config } from './interfaces/config';
 import { ExportToCsvParams } from './interfaces/export-to-csv-params';
 import { ResultItem } from './interfaces/result-item';
 import { FileWriter } from './lib/fileWriter';
 import { scraping } from './lib/scrap_modules/testAllSite';
-import config from './scraper.config';
 
 const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
 const cliProgress = require('cli-progress');
+const config = require('./scraper.config');
 
 
 export default class Main {
@@ -18,12 +19,15 @@ export default class Main {
   private results: ResultItem[] = [];
   private argv: CliArguments;
   private queue: any;
-  private readonly progressBar: any;
-  private readonly url: string;
-  private readonly exportSettings: ExportToCsvParams;
   private selectorString: string;
   private regexp: RegExp | undefined;
   private rl: Readline;
+  private resultPath: string;
+  private config: Config;
+  private readonly progressBar: any;
+  private readonly url: string;
+  private readonly exportSettings: ExportToCsvParams;
+
 
   constructor(argv: CliArguments, rl: Readline) {
     this.progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
@@ -37,6 +41,9 @@ export default class Main {
       unwind: ['tags', 'tags.list'],
       delimiter: ';',
     };
+    this.config = config as Config;
+
+    this.resultPath = this.config.resultPath || './';
 
     this.fileWriter.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
 
@@ -168,7 +175,7 @@ export default class Main {
       scraping({
         results: this.results,
         progressBar: this.progressBar,
-        excludeURL: config.excludeURL,
+        excludeURL: this.config.excludeURL,
         queue: this.queue,
         selectorString: this.selectorString,
         regexp: this.regexp,
@@ -206,7 +213,7 @@ export default class Main {
 
   private async safetyWriteResult(): Promise<void> {
     try {
-      await FileWriter.writeResultsFile(this.results, config.resultPath);
+      await FileWriter.writeResultsFile(this.results, this.config.resultPath);
     } catch (e) {
       await this.fileWriter.writeLog({
         message: `Cannot write result\r\n Error: ${e}`,
