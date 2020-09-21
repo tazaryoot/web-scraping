@@ -1,4 +1,5 @@
 import { Interface as Readline } from 'readline';
+import { TressJobData, TressStatic } from 'tress';
 import { CliArguments } from './interfaces/cli-arguments';
 
 import { Config } from './interfaces/config';
@@ -6,19 +7,24 @@ import { ExportToCsvParams } from './interfaces/export-to-csv-params';
 import { ResultItem } from './interfaces/result-item';
 import { FileWriter } from './lib/fileWriter';
 import { scraping } from './lib/scrap_modules/testAllSite';
+import config from './scraper.config';
 
 const needle = require('needle');
 const tress = require('tress');
 const perf = require('execution-time')();
 const cliProgress = require('cli-progress');
-const config = require('./scraper.config');
+
+
+export interface TressHandlerParams extends TressJobData {
+  url: string;
+}
 
 
 export default class Main {
   private fileWriter: FileWriter;
   private results: ResultItem[] = [];
   private argv: CliArguments;
-  private queue: any;
+  private readonly queue: TressStatic;
   private selectorString: string;
   private regexp: RegExp | undefined;
   private rl: Readline;
@@ -28,11 +34,11 @@ export default class Main {
   private readonly url: string;
   private readonly exportSettings: ExportToCsvParams;
 
-
   constructor(argv: CliArguments, rl: Readline) {
     this.progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
     this.fileWriter = new FileWriter();
-    this.url = config.urlMap || config.urlCore;
+    this.config = config as Config;
+    this.url = this.config.urlMap || this.config.urlCore;
     this.argv = argv;
     this.rl = rl;
     this.selectorString = '';
@@ -41,7 +47,6 @@ export default class Main {
       unwind: ['tags', 'tags.list'],
       delimiter: ';',
     };
-    this.config = config as Config;
 
     this.resultPath = this.config.resultPath || './';
 
@@ -50,11 +55,11 @@ export default class Main {
     perf.start();
     this.tressHandler = this.tressHandler.bind(this);
     this.drain = this.drain.bind(this);
+    this.queue = tress(this.tressHandler);
 
     this.createSelectorString();
     this.createRegEx();
   }
-
 
   // Метод стартует поиск
   public async startSearch(): Promise<void> {
@@ -75,7 +80,7 @@ export default class Main {
         logLevel: 'err',
       });
 
-      this.safetyWriteResult();
+      await this.safetyWriteResult();
 
       setTimeout(() => { process.exit(-1); }, 1000);
     }
@@ -92,48 +97,49 @@ export default class Main {
 
   // Метод обрабатывает очередь запросов
   private queueHandler(): void {
-    this.queue = tress(this.tressHandler);
-
     this.queue.drain = this.drain;
 
-    this.queue.push(this.url);
+    this.queue.push({ url: this.url });
   }
 
 
   // Метод запрашивает страницы из очереди
-  private tressHandler(pageURL: string, callback: Function) {
-    (async () => {
-      let fullURL = pageURL;
+  private async tressHandler(page: TressHandlerParams, callback: Function) {
+    try {
+      if (!page?.url) {
+        throw new Error(`Parameter page is incorrect. page: ${page}`);
+      }
+
+      const { url } = page;
+      let fullURL = url;
 
       if (fullURL.indexOf('http') === -1) {
-        fullURL = `${config.urlCore}${pageURL}`;
+        fullURL = `${this.config.urlCore}${url}`;
       }
 
-      try {
-        const response = await needle('get', fullURL);
-        const { statusCode } = response;
+      const response = await needle('get', fullURL);
+      const { statusCode } = response;
 
-        if (statusCode >= 300 && statusCode < 400) {
-          const location = response.headers.location;
+      if (statusCode >= 300 && statusCode < 400) {
+        const location = response.headers.location;
 
-          this.queue.push(location);
+        this.queue.push({ url: location});
 
-        } else if (statusCode !== 200) {
-          throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
-        } else {
-          this.responseHandler(response, fullURL)
-        }
+      } else if (statusCode !== 200) {
+        throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
+      } else {
+        this.responseHandler(response, fullURL)
       }
-      catch (e) {
-        await this.fileWriter.writeLog({
-          message: e,
-          logLevel: 'err',
-        });
-      }
-      finally {
-        callback();
-      }
-    })()
+    }
+    catch (e) {
+      await this.fileWriter.writeLog({
+        message: e,
+        logLevel: 'err',
+      });
+    }
+    finally {
+      callback();
+    }
   }
 
 
@@ -162,7 +168,7 @@ export default class Main {
   }
 
 
-  // Метод обрадатывет полученные данные
+  // Метод обрабатывает полученные данные
   private responseHandler(response: any, url: string): void {
     const { statusCode } = response;
 

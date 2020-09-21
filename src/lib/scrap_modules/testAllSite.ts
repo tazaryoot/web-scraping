@@ -6,9 +6,9 @@ import { FileWriter } from '../fileWriter';
 
 const fileWriter = new FileWriter();
 
-const queuedLinkList: any = [];
+const queuedLinkList: string[] = [];
 let count = 0;
-let limit: number;
+let limit: number = 100;
 let progressValue = 0;
 
 fileWriter.startWriteStream('map.txt');
@@ -19,7 +19,7 @@ fileWriter.writeMessageInStream('{').then(() => {});
  * @param {Object} params
  * @return void
  */
-export function scraping(params: ScrapingParams) {
+export function scraping(params: ScrapingParams): void {
   const {
     response,
     queue,
@@ -58,7 +58,8 @@ export function scraping(params: ScrapingParams) {
 
         queuedLinkList.push(link);
         fileWriter.writeMessageInStream(`{page: "${link}"},`).then();
-        queue.push(/^\//.test(link) ? link : `/${link}`);
+        const jobData = { url: /^\//.test(link) ? link : `/${link}`}
+        queue.push(jobData);
         progressBar.setTotal(queuedLinkList.length);
       }
     });
