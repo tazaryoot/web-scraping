@@ -15,9 +15,6 @@ npm start [ options... ]
 ```-r, --regex```
 регулярное выражения для уточнения поиска
 
-```-e, --exporting```
-экспорт найденных элементов в csv файл;
-
 **Пример запроса**
 
 ```--selector .zopa,#made_in,#sitemap_cont```

@@ -1,18 +1,24 @@
+import { NeedleResponse } from 'needle';
 import { Interface as Readline } from 'readline';
-import { TressJobData, TressStatic } from 'tress';
+import { TressJobData, TressStatic, TressWorkerDoneCallback } from 'tress';
 import { CliArguments } from './interfaces/cli-arguments';
+import { CliProgress } from './interfaces/cli-progress';
 
 import { Config } from './interfaces/config';
-import { ExportToCsvParams } from './interfaces/export-to-csv-params';
+import { ExecutionTime } from './interfaces/execution-time';
+import { NeedleConstructor } from './interfaces/needle-constructor';
 import { ResultItem } from './interfaces/result-item';
+import { TessConstructor } from './interfaces/tess-constructor';
 import { FileWriter } from './lib/fileWriter';
 import { scraping } from './lib/scrap_modules/testAllSite';
-import config from './scraper.config';
+import { config } from './scraper.config';
 
-const needle = require('needle');
-const tress = require('tress');
-const perf = require('execution-time')();
-const cliProgress = require('cli-progress');
+/* eslint-disable */
+const needle: NeedleConstructor = require('needle');
+const tress: TessConstructor = require('tress');
+const perf: ExecutionTime = require('execution-time')();
+const cliProgress: CliProgress = require('cli-progress');
+/* eslint-enable */
 
 
 export interface TressHandlerParams extends TressJobData {
@@ -30,32 +36,25 @@ export default class Main {
   private rl: Readline;
   private resultPath: string;
   private config: Config;
-  private readonly progressBar: any;
+  // private readonly progressBar: CliProgressBar;
   private readonly url: string;
-  private readonly exportSettings: ExportToCsvParams;
 
-  constructor(argv: CliArguments, rl: Readline) {
-    this.progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
+  constructor(argv: unknown, rl: Readline) {
+    // const { Bar: bar } = cliProgress;
+    // this.progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic) as any;
     this.fileWriter = new FileWriter();
     this.config = config as Config;
     this.url = this.config.urlMap || this.config.urlCore;
-    this.argv = argv;
+    this.argv = argv as CliArguments;
     this.rl = rl;
     this.selectorString = '';
-    this.exportSettings = {
-      fields: ['page', 'title', { label: 'tag', value: 'tags.name' }, { label: 'text', value: 'tags.list.text' }],
-      unwind: ['tags', 'tags.list'],
-      delimiter: ';',
-    };
 
     this.resultPath = this.config.resultPath || './';
 
     this.fileWriter.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
 
     perf.start();
-    this.tressHandler = this.tressHandler.bind(this);
-    this.drain = this.drain.bind(this);
-    this.queue = tress(this.tressHandler);
+    this.queue = tress(this.tressHandler.bind(this));
 
     this.createSelectorString();
     this.createRegEx();
@@ -73,10 +72,10 @@ export default class Main {
     try {
       this.queueHandler();
     } catch (e) {
-      console.error(`Error ${e}`);
+      console.error(`Error ${e as string}`);
 
       await this.fileWriter.writeLog({
-        message: `Global error\r\n Error: ${e}`,
+        message: `Global error\r\n Error: ${e as string}`,
         logLevel: 'err',
       });
 
@@ -87,65 +86,59 @@ export default class Main {
   }
 
 
-  // Метод экспортирует данные в CSV
-  public exportToCSV(): void {
-    console.log('Exporting...');
-    this.fileWriter.initExport2CSV(this.exportSettings);
-    this.fileWriter.export2Csv();
-  }
-
-
   // Метод обрабатывает очередь запросов
   private queueHandler(): void {
-    this.queue.drain = this.drain;
+    this.queue.drain = this.drain.bind(this);
 
     this.queue.push({ url: this.url });
   }
 
 
   // Метод запрашивает страницы из очереди
-  private async tressHandler(page: TressHandlerParams, callback: Function) {
-    try {
-      if (!page?.url) {
-        throw new Error(`Parameter page is incorrect. page: ${page}`);
+  private tressHandler (page: TressJobData, callback: TressWorkerDoneCallback): void {
+    void (async () => {
+      try {
+        if (!page?.url) {
+          throw new Error(`Parameter page is incorrect.`);
+        }
+
+        const { url } = page as TressHandlerParams;
+        let fullURL = url;
+
+        if (fullURL.indexOf('http') === -1) {
+          fullURL = `${this.config.urlCore}${url}`;
+        }
+
+        const response: NeedleResponse = await needle('get', fullURL);
+        const { statusCode = 0 } = response;
+
+        if (statusCode >= 300 && statusCode < 400) {
+          const location = response.headers.location as string;
+
+          this.queue.push({ url: location});
+
+        } else if (statusCode !== 200) {
+          throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
+        } else {
+          this.responseHandler(response, fullURL)
+        }
       }
-
-      const { url } = page;
-      let fullURL = url;
-
-      if (fullURL.indexOf('http') === -1) {
-        fullURL = `${this.config.urlCore}${url}`;
+      catch (e) {
+        await this.fileWriter.writeLog({
+          message: e as string,
+          logLevel: 'err',
+        });
       }
-
-      const response = await needle('get', fullURL);
-      const { statusCode } = response;
-
-      if (statusCode >= 300 && statusCode < 400) {
-        const location = response.headers.location;
-
-        this.queue.push({ url: location});
-
-      } else if (statusCode !== 200) {
-        throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
-      } else {
-        this.responseHandler(response, fullURL)
+      finally {
+        callback(null);
       }
-    }
-    catch (e) {
-      await this.fileWriter.writeLog({
-        message: e,
-        logLevel: 'err',
-      });
-    }
-    finally {
-      callback();
-    }
+    })()
   }
 
 
   // Метод завершает обработку очереди
   private drain(): void {
-    (async () => {
+    void (async () => {
       const performance = perf.stop();
 
       await this.fileWriter.writeLog({
@@ -156,12 +149,10 @@ export default class Main {
 
       if (this.argv.exporting) {
         console.log('Exporting...');
-        this.fileWriter.initExport2CSV(this.exportSettings);
-        this.fileWriter.export2Csv();
       }
 
       this.fileWriter.endWriteStream();
-      this.progressBar.stop();
+      // this.progressBar.stop();
       console.warn(`Executing time: ${performance.verboseWords}`);
       this.rl.close();
     })();
@@ -169,18 +160,18 @@ export default class Main {
 
 
   // Метод обрабатывает полученные данные
-  private responseHandler(response: any, url: string): void {
-    const { statusCode } = response;
+  private responseHandler(response: NeedleResponse, url: string): void {
+    const { statusCode = 0 } = response;
 
-    this.fileWriter.writeLog({
+    void this.fileWriter.writeLog({
       message: `Status: ${statusCode}. Scrapping page ${url}.`,
       logLevel: 'inf',
-    }).then();
+    });
 
     try {
       scraping({
         results: this.results,
-        progressBar: this.progressBar,
+        progressBar: null,
         excludeURL: this.config.excludeURL,
         queue: this.queue,
         selectorString: this.selectorString,
@@ -189,7 +180,7 @@ export default class Main {
         response,
       });
     } catch (e) {
-      throw new Error(`Parse error on page ${url}\\r\\n Error: ${e}`)
+      throw new Error(`Parse error on page ${url}\\r\\n Error: ${e as string}`)
     }
   }
 
@@ -222,7 +213,7 @@ export default class Main {
       await FileWriter.writeResultsFile(this.results, this.config.resultPath);
     } catch (e) {
       await this.fileWriter.writeLog({
-        message: `Cannot write result\r\n Error: ${e}`,
+        message: `Cannot write result\r\n Error: ${e as string}`,
         logLevel: 'err',
       });
     }

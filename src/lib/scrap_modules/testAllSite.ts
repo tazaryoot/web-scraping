@@ -1,3 +1,4 @@
+/* eslint-disable */
 const cheerio = require('cheerio');
 
 import { ResultTagItem } from '../../interfaces/result-tag-item';
@@ -31,7 +32,7 @@ export function scraping(params: ScrapingParams): void {
     regexp,
   } = params;
 
-  if (!progressValue) {
+  if (!progressValue && progressBar) {
     progressBar.start(progressValue + 1, progressValue);
   }
 
@@ -60,7 +61,7 @@ export function scraping(params: ScrapingParams): void {
         fileWriter.writeMessageInStream(`{page: "${link}"},`).then();
         const jobData = { url: /^\//.test(link) ? link : `/${link}`}
         queue.push(jobData);
-        progressBar.setTotal(queuedLinkList.length);
+        // progressBar.setTotal(queuedLinkList.length);
       }
     });
   }
@@ -120,5 +121,5 @@ export function scraping(params: ScrapingParams): void {
   });
 
   progressValue += 1;
-  progressBar.update(progressValue);
+  // progressBar.update(progressValue);
 }

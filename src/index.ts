@@ -1,8 +1,8 @@
-import Main from './main';
-import config from './scraper.config';
+import * as readline from "readline";
+import yargs from 'yargs'
 
-const yargs = require('yargs');
-const readline = require('readline');
+import Main from './main';
+import { config } from './scraper.config';
 
 if (!config.urlCore) {
   throw new Error('urlCore not set');
@@ -21,10 +21,4 @@ yargs
 
 const main = new Main(yargs.argv, rl);
 
-if (!yargs.argv.selector && yargs.argv.exporting) {
-  main.exportToCSV();
-
-  rl.close();
-}
-
-main.startSearch().then();
+void main.startSearch();
