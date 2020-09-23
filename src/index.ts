@@ -1,14 +1,17 @@
-import * as readline from "readline";
-import yargs from 'yargs'
+import { createInterface } from 'readline';
+import yargs from 'yargs';
 
 import Main from './main';
+import { TYPES } from './interfaces/types';
+import { appContainer } from './inversify.config';
 import { config } from './scraper.config';
+
 
 if (!config.urlCore) {
   throw new Error('urlCore not set');
 }
 
-const rl = readline.createInterface({
+const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
@@ -19,6 +22,7 @@ yargs
   .option('regex', { alias: 'r', describe: 'regular expression string' });
 
 
-const main = new Main(yargs.argv, rl);
+const mainApp = appContainer.get<Main>(TYPES.Main);
 
-void main.startSearch();
+mainApp.init(yargs.argv, rl);
+void mainApp.startSearch();

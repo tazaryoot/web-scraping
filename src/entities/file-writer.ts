@@ -1,21 +1,30 @@
+import 'reflect-metadata';
 import fs, { WriteStream } from 'fs';
+import { injectable } from 'inversify';
 
+import { FileWrite } from '../interfaces/file-write';
 import { LoggerParams } from '../interfaces/logger-params';
 import { ResultItem } from '../interfaces/result-item';
 
-export class FileWriter {
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+@injectable()
+export class FileWriter implements FileWrite {
   private writeStream: WriteStream | undefined;
   private encode: string;
+
 
   constructor() {
     this.encode = 'win1251';
   }
 
+
   static pad(n: number): string {
     return n < 10 ? `0${n}` : n.toString();
   }
 
-  static getTime(short?: boolean): string {
+
+  getTime(short?: boolean): string {
     const date = new Date();
     let time = `${date.getFullYear()}-${FileWriter.pad(date.getMonth() + 1)}-${FileWriter.pad(date.getDate())}`;
 
@@ -25,7 +34,8 @@ export class FileWriter {
     return time;
   }
 
-  static writeResultsFile(results: ResultItem[], path = './'): Promise<unknown> {
+
+  writeResultsFile(results: ResultItem[], path = './'): Promise<unknown> {
     return new Promise((resolve, reject) => {
       try {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -38,9 +48,11 @@ export class FileWriter {
     });
   }
 
+
   startWriteStream(fileName: string): void {
     this.writeStream = fs.createWriteStream(fileName, { flags: 'a' });
   }
+
 
   endWriteStream(): void {
     if (this.writeStream) {
@@ -48,12 +60,13 @@ export class FileWriter {
     }
   }
 
+
   writeLog(logObj: LoggerParams): Promise<unknown> {
     return new Promise((resolve, reject) => {
       try {
         const { message, logLevel } = logObj;
         if (this.writeStream) {
-          this.writeStream.write(`[${FileWriter.getTime()}][${logLevel}] ${message}\r\n`);
+          this.writeStream.write(`[${this.getTime()}][${logLevel}] ${message}\r\n`);
         }
 
         resolve();
@@ -63,6 +76,7 @@ export class FileWriter {
       }
     });
   }
+
 
   writeMessageInStream(message: string): Promise<unknown> {
     return new Promise((resolve, reject) => {

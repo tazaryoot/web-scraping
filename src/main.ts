@@ -1,67 +1,76 @@
-import { NeedleResponse } from 'needle';
+import 'reflect-metadata';
+import { IncomingMessage } from 'http';
+import { inject, injectable, unmanaged } from 'inversify';
 import { Interface as Readline } from 'readline';
-import { TressJobData, TressStatic, TressWorkerDoneCallback } from 'tress';
+
 import { CliArguments } from './interfaces/cli-arguments';
 import { CliProgress } from './interfaces/cli-progress';
-
 import { Config } from './interfaces/config';
 import { ExecutionTime } from './interfaces/execution-time';
-import { NeedleConstructor } from './interfaces/needle-constructor';
+import { FileWrite } from './interfaces/file-write';
+import { FunctionType } from './interfaces/function-type';
+import { HttpClient } from './interfaces/http-client';
+import { JobData, QueueJob, QueueJobStatic } from './interfaces/queue-job';
 import { ResultItem } from './interfaces/result-item';
-import { TessConstructor } from './interfaces/tess-constructor';
-import { FileWriter } from './lib/fileWriter';
-import { scraping } from './lib/scrap_modules/testAllSite';
+import { Scraper } from './interfaces/scraper';
+import { TYPES } from './interfaces/types';
+
 import { config } from './scraper.config';
 
+
 /* eslint-disable */
-const needle: NeedleConstructor = require('needle');
-const tress: TessConstructor = require('tress');
-const perf: ExecutionTime = require('execution-time')();
 const cliProgress: CliProgress = require('cli-progress');
 /* eslint-enable */
 
 
-export interface TressHandlerParams extends TressJobData {
+export interface JobDataExtended extends JobData {
   url: string;
 }
 
-
+@injectable()
 export default class Main {
-  private fileWriter: FileWriter;
   private results: ResultItem[] = [];
-  private argv: CliArguments;
-  private readonly queue: TressStatic;
   private selectorString: string;
   private regexp: RegExp | undefined;
-  private rl: Readline;
-  private resultPath: string;
-  private config: Config;
   // private readonly progressBar: CliProgressBar;
+  private readonly resultPath: string;
   private readonly url: string;
+  private readonly queue: QueueJobStatic;
+  private readonly config: Config;
 
-  constructor(argv: unknown, rl: Readline) {
+
+  constructor(
+    @inject(TYPES.FileWrite) private fileWriter: FileWrite,
+    @inject(TYPES.Scrapper) private scrapper: Scraper,
+    @inject(TYPES.QueueJob) private queueJob: QueueJob,
+    @inject(TYPES.HttpClient) private httpClient: HttpClient,
+    @inject(TYPES.ExecutionTime) private perf: ExecutionTime,
+    @unmanaged() private argv: CliArguments,
+    @unmanaged() private rl: Readline,
+  ) {
     // const { Bar: bar } = cliProgress;
     // this.progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic) as any;
-    this.fileWriter = new FileWriter();
     this.config = config as Config;
     this.url = this.config.urlMap || this.config.urlCore;
-    this.argv = argv as CliArguments;
-    this.rl = rl;
     this.selectorString = '';
-
-    this.resultPath = this.config.resultPath || './';
-
-    this.fileWriter.startWriteStream(`log-${FileWriter.getTime(true)}.txt`);
-
-    perf.start();
-    this.queue = tress(this.tressHandler.bind(this));
-
-    this.createSelectorString();
-    this.createRegEx();
+    this.resultPath = this.config.resultPath || '../build/';
+    this.queue = this.queueJob.tessQueue(this.tressHandler.bind(this));
   }
 
+
+  init(argv: unknown, rl: Readline): void {
+    this.argv = argv as CliArguments;
+    this.rl = rl;
+
+    this.fileWriter.startWriteStream(`log-${this.fileWriter.getTime(true)}.txt`);
+    this.createSelectorString();
+    this.createRegEx();
+    this.perf.start();
+  }
+
+
   // Метод стартует поиск
-  public async startSearch(): Promise<void> {
+  async startSearch(): Promise<void> {
     console.info('Starting...');
 
     await this.fileWriter.writeLog({
@@ -95,21 +104,21 @@ export default class Main {
 
 
   // Метод запрашивает страницы из очереди
-  private tressHandler (page: TressJobData, callback: TressWorkerDoneCallback): void {
+  private tressHandler (page: JobData, callback: FunctionType): void {
     void (async () => {
       try {
         if (!page?.url) {
           throw new Error(`Parameter page is incorrect.`);
         }
 
-        const { url } = page as TressHandlerParams;
+        const { url } = page as JobDataExtended;
         let fullURL = url;
 
         if (fullURL.indexOf('http') === -1) {
           fullURL = `${this.config.urlCore}${url}`;
         }
 
-        const response: NeedleResponse = await needle('get', fullURL);
+        const response: IncomingMessage = await this.httpClient.get(fullURL);
         const { statusCode = 0 } = response;
 
         if (statusCode >= 300 && statusCode < 400) {
@@ -118,7 +127,7 @@ export default class Main {
           this.queue.push({ url: location});
 
         } else if (statusCode !== 200) {
-          throw new Error(`Status: ${statusCode}. Get page ${fullURL} is failed.`);
+          throw new Error(`Status: ${statusCode as number}. Get page ${fullURL} is failed.`);
         } else {
           this.responseHandler(response, fullURL)
         }
@@ -130,7 +139,7 @@ export default class Main {
         });
       }
       finally {
-        callback(null);
+        callback();
       }
     })()
   }
@@ -139,7 +148,7 @@ export default class Main {
   // Метод завершает обработку очереди
   private drain(): void {
     void (async () => {
-      const performance = perf.stop();
+      const performance = this.perf.stop();
 
       await this.fileWriter.writeLog({
         message: `Executing time: ${performance.verboseWords}`,
@@ -160,16 +169,16 @@ export default class Main {
 
 
   // Метод обрабатывает полученные данные
-  private responseHandler(response: NeedleResponse, url: string): void {
+  private responseHandler(response: IncomingMessage, url: string): void {
     const { statusCode = 0 } = response;
 
     void this.fileWriter.writeLog({
-      message: `Status: ${statusCode}. Scrapping page ${url}.`,
+      message: `Status: ${statusCode as number}. Scrapping page ${url}.`,
       logLevel: 'inf',
     });
 
     try {
-      scraping({
+      this.scrapper.start({
         results: this.results,
         progressBar: null,
         excludeURL: this.config.excludeURL,
@@ -208,9 +217,10 @@ export default class Main {
     }
   }
 
+
   private async safetyWriteResult(): Promise<void> {
     try {
-      await FileWriter.writeResultsFile(this.results, this.config.resultPath);
+      await this.fileWriter.writeResultsFile(this.results, this.resultPath);
     } catch (e) {
       await this.fileWriter.writeLog({
         message: `Cannot write result\r\n Error: ${e as string}`,
@@ -218,5 +228,4 @@ export default class Main {
       });
     }
   }
-
 }
