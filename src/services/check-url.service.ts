@@ -11,8 +11,6 @@ export class CheckUrlService implements CheckUrl {
     let normalizeUrlScrapContext = urlScrapContext.endsWith('/') ? urlScrapContext : `${urlScrapContext}/`;
     normalizeUrlScrapContext = normalizeUrlScrapContext.startsWith('/') ? normalizeUrlScrapContext : `/${normalizeUrlScrapContext}`;
 
-    const result = targetUrl.startsWith(`${normalizeCoreUrl}${normalizeUrlScrapContext}`) || targetUrl.startsWith(normalizeUrlScrapContext);
-
     return targetUrl.startsWith(`${normalizeCoreUrl}${normalizeUrlScrapContext}`) || targetUrl.startsWith(normalizeUrlScrapContext);
   }
 }
