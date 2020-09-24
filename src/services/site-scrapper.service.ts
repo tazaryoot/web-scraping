@@ -22,12 +22,12 @@ export class SiteScrapperService implements Scraper {
 
 
   constructor(
-    @inject(TYPES.FileWrite) private fileWriter: FileWrite,
-    @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
-    @inject(TYPES.QueueJob) private queueJob: QueueJob,
-    @inject(TYPES.CheckUrl) private checkUrl: CheckUrl,
+    @inject(TYPES.FileWrite) private fileWriterService: FileWrite,
+    @inject(TYPES.ProgressBar) private cliProgressService: ProgressBar,
+    @inject(TYPES.QueueJob) private queueJobService: QueueJob,
+    @inject(TYPES.CheckUrl) private checkUrlService: CheckUrl,
   ) {
-    this.fileWriter.startWriteStream('map.txt');
+    this.fileWriterService.startWriteStream('map.txt');
   }
 
 
@@ -46,7 +46,7 @@ export class SiteScrapperService implements Scraper {
     const $ = cheerio.load(body);
     const area = $('body');
     const that = this;
-    const queue: QueueJobStatic = this.queueJob.getQueue();
+    const queue: QueueJobStatic = this.queueJobService.getQueue();
 
     if (!this.limit || this.count < this.limit) {
       let aList = area.find('a');
@@ -60,7 +60,7 @@ export class SiteScrapperService implements Scraper {
 
       aList = aList.filter(function() {
         // @ts-ignore
-        return !!$(this).attr('href') && that.checkUrl.check($(this).attr('href'), urlCore, urlScrapContext);
+        return !!$(this).attr('href') && that.checkUrlService.check($(this).attr('href'), urlCore, urlScrapContext);
       })
 
       aList.each(function() {
@@ -68,17 +68,17 @@ export class SiteScrapperService implements Scraper {
         const link = $(this).attr('href') as string;
 
 
-        if (that.queueJob.queuedLinkList.indexOf(link) === -1 && (!that.limit || that.count < that.limit)) {
+        if (that.queueJobService.queuedLinkList.indexOf(link) === -1 && (!that.limit || that.count < that.limit)) {
           that.count += 1;
 
-          that.queueJob.queuedLinkList.push(link);
+          that.queueJobService.queuedLinkList.push(link);
 
-          void that.fileWriter.writeMessageInStream(`{page: "${link}"},`);
+          void that.fileWriterService.writeMessageInStream(`{page: "${link}"},`);
 
           const jobData = { url: /^\//.test(link) ? link : `/${link}`}
           queue.push(jobData);
 
-          that.cliProgress.setTotal(that.queueJob.queuedLinkList.length);
+          that.cliProgressService.setTotal(that.queueJobService.queuedLinkList.length);
         }
       });
     }

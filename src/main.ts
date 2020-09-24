@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { inject, injectable, unmanaged } from 'inversify';
 import { Interface as Readline } from 'readline';
 
-import { CheckUrl } from './interfaces/check-url';
 import { CliArguments } from './interfaces/cli-arguments';
 import { Config } from './interfaces/config';
 import { ExecutionTime } from './interfaces/execution-time';
@@ -31,13 +30,12 @@ export default class Main {
 
 
   constructor(
-    @inject(TYPES.FileWrite) private fileWriter: FileWrite,
-    @inject(TYPES.Scrapper) private scrapper: Scraper,
-    @inject(TYPES.QueueJob) private queueJob: QueueJob,
-    @inject(TYPES.HttpClient) private httpClient: HttpClient,
-    @inject(TYPES.ExecutionTime) private perf: ExecutionTime,
-    @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
-    @inject(TYPES.CheckUrl) private checkUrl: CheckUrl,
+    @inject(TYPES.FileWrite) private fileWriterService: FileWrite,
+    @inject(TYPES.Scrapper) private scrapperService: Scraper,
+    @inject(TYPES.QueueJob) private queueJobService: QueueJob,
+    @inject(TYPES.HttpClient) private httpClientService: HttpClient,
+    @inject(TYPES.ExecutionTime) private perfService: ExecutionTime,
+    @inject(TYPES.ProgressBar) private cliProgressService: ProgressBar,
     @unmanaged() private argv: CliArguments,
     @unmanaged() private rl: Readline,
   ) {
@@ -45,9 +43,9 @@ export default class Main {
     this.url = this.config.urlMap || `${this.config.urlCore}${this.config.urlScrapContext || ''}`;
     this.selectorString = '';
     this.resultPath = this.config.resultPath || '../build/';
-    this.queueJob.createQueue(this.tressHandler.bind(this));
+    this.queueJobService.createQueue(this.tressHandler.bind(this));
 
-    this.queue = this.queueJob.getQueue();
+    this.queue = this.queueJobService.getQueue();
   }
 
 
@@ -55,10 +53,10 @@ export default class Main {
     this.argv = argv as CliArguments;
     this.rl = rl;
 
-    this.fileWriter.startWriteStream(`log-${this.fileWriter.getTime(true)}.txt`);
+    this.fileWriterService.startWriteStream(`log-${this.fileWriterService.getTime(true)}.txt`);
     this.createSelectorString();
     this.createRegEx();
-    this.perf.start();
+    this.perfService.start();
   }
 
 
@@ -66,9 +64,9 @@ export default class Main {
   async startSearch(): Promise<void> {
     console.info('Starting...');
 
-    this.cliProgress.start(100);
+    this.cliProgressService.start(100);
 
-    await this.fileWriter.writeLog({
+    await this.fileWriterService.writeLog({
       message: `Start scrapping with selectors ${this.selectorString}`,
       logLevel: 'inf',
     });
@@ -78,7 +76,7 @@ export default class Main {
     } catch (e) {
       console.error(`Error ${e as string}`);
 
-      await this.fileWriter.writeLog({
+      await this.fileWriterService.writeLog({
         message: `Global error\r\n Error: ${e as string}`,
         logLevel: 'err',
       });
@@ -101,7 +99,7 @@ export default class Main {
   // Метод запрашивает страницы из очереди
   private tressHandler (page: JobData, callback: FunctionType): void {
     void (async () => {
-      this.cliProgress.update();
+      this.cliProgressService.update();
 
       try {
         if (!page?.url) {
@@ -115,7 +113,7 @@ export default class Main {
           fullURL = `${this.config.urlCore}${url}`;
         }
 
-        const response: ExtendedResponse = await this.httpClient.get(fullURL);
+        const response: ExtendedResponse = await this.httpClientService.get(fullURL);
         const { statusCode = 0 } = response;
 
         if (statusCode >= 300 && statusCode < 400) {
@@ -130,7 +128,7 @@ export default class Main {
         }
       }
       catch (e) {
-        await this.fileWriter.writeLog({
+        await this.fileWriterService.writeLog({
           message: e as string,
           logLevel: 'err',
         });
@@ -145,9 +143,9 @@ export default class Main {
   // Метод завершает обработку очереди
   private drain(): void {
     void (async () => {
-      const performance = this.perf.stop();
+      const performance = this.perfService.stop();
 
-      await this.fileWriter.writeLog({
+      await this.fileWriterService.writeLog({
         message: `Executing time: ${performance.verboseWords}`,
         logLevel: 'inf',
       });
@@ -157,10 +155,10 @@ export default class Main {
         console.log('Exporting...');
       }
 
-      this.fileWriter.endWriteStream();
+      this.fileWriterService.endWriteStream();
 
-      this.cliProgress.setTotal(0);
-      this.cliProgress.stop();
+      this.cliProgressService.setTotal(0);
+
 
       console.warn(`Executing time: ${performance.verboseWords}`);
 
@@ -173,15 +171,15 @@ export default class Main {
   private responseHandler(response: ExtendedResponse, url: string): void {
     const { statusCode = 0 } = response;
 
-    void this.fileWriter.writeLog({
+    void this.fileWriterService.writeLog({
       message: `Status: ${statusCode as number}. Scrapping page ${url}.`,
       logLevel: 'inf',
     });
 
-    this.queueJob.queuedLinkList.push(url);
+    this.queueJobService.queuedLinkList.push(url);
 
     try {
-      this.scrapper.start({
+      this.scrapperService.start({
         results: this.results,
         excludeURL: this.config.excludeURL,
         selectorString: this.selectorString,
@@ -223,9 +221,9 @@ export default class Main {
 
   private async safetyWriteResult(): Promise<void> {
     try {
-      await this.fileWriter.writeResultsFile(this.results, this.resultPath);
+      await this.fileWriterService.writeResultsFile(this.results, this.resultPath);
     } catch (e) {
-      await this.fileWriter.writeLog({
+      await this.fileWriterService.writeLog({
         message: `Cannot write result\r\n Error: ${e as string}`,
         logLevel: 'err',
       });
