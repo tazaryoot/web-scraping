@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { FileWrite } from '../interfaces/file-write';
 import { ProgressBar } from '../interfaces/progress-bar';
+import { QueueJob, QueueJobStatic } from '../interfaces/queue-job';
 import { ResultTagItem } from '../interfaces/result-tag-item';
 
 import { Scraper } from '../interfaces/scraper';
@@ -23,6 +24,7 @@ export class SiteScrapperService implements Scraper {
   constructor(
     @inject(TYPES.FileWrite) private fileWriter: FileWrite,
     @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
+    @inject(TYPES.QueueJob) private queueJob: QueueJob,
   ) {
     this.fileWriter.startWriteStream('map.txt');
     void this.fileWriter.writeMessageInStream('{');
@@ -31,8 +33,7 @@ export class SiteScrapperService implements Scraper {
 
   start(params: ScrapingParams): void {
     const {
-      response,
-      queue,
+      body,
       results,
       selectorString,
       url,
@@ -40,10 +41,10 @@ export class SiteScrapperService implements Scraper {
       regexp,
     } = params;
 
-    const $ = cheerio.load(response.body);
+    const $ = cheerio.load(body);
     const area = $('body');
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
+    const queue: QueueJobStatic = this.queueJob.getQueue();
 
     if (!this.limit || this.count < this.limit) {
       let aList = area.find('a');
@@ -64,9 +65,12 @@ export class SiteScrapperService implements Scraper {
           that.count += 1;
 
           that.queuedLinkList.push(link);
+
           void that.fileWriter.writeMessageInStream(`{page: "${link}"},`);
+
           const jobData = { url: /^\//.test(link) ? link : `/${link}`}
           queue.push(jobData);
+
           that.cliProgress.setTotal(that.queuedLinkList.length);
         }
       });
@@ -89,6 +93,7 @@ export class SiteScrapperService implements Scraper {
         title: $('title').text(),
         tags: [],
       });
+
       resultsLength += 1;
     }
 
@@ -106,6 +111,7 @@ export class SiteScrapperService implements Scraper {
           name: tagName,
           list: [],
         });
+
         idx = tags.length - 1;
       }
 
@@ -116,6 +122,7 @@ export class SiteScrapperService implements Scraper {
         if (element.attribs?.classes) {
           listItem.classes = element.attribs.classes;
         }
+
         if (element.attribs?.id) {
           listItem.id = element.attribs?.id;
         }

@@ -21,9 +21,9 @@ const appContainer: Container = new Container();
 
 appContainer.bind<FileWrite>(TYPES.FileWrite).to(FileWriterService);
 appContainer.bind<Scraper>(TYPES.Scrapper).to(SiteScrapperService);
-appContainer.bind<QueueJob>(TYPES.QueueJob).to(Queue);
 appContainer.bind<HttpClient>(TYPES.HttpClient).to(HttpClientNeedleService);
 appContainer.bind<ExecutionTime>(TYPES.ExecutionTime).to(ExecutionTimerService);
+appContainer.bind<QueueJob>(TYPES.QueueJob).to(Queue).inSingletonScope();
 appContainer.bind<ProgressBar>(TYPES.ProgressBar).to(ProgressBarService).inSingletonScope();
 
 appContainer.bind<Main>(TYPES.Main).to(Main);

@@ -1,26 +1,22 @@
 import 'reflect-metadata';
-import { IncomingMessage } from 'http';
 import { inject, injectable, unmanaged } from 'inversify';
 import { Interface as Readline } from 'readline';
 
 import { CliArguments } from './interfaces/cli-arguments';
 import { Config } from './interfaces/config';
 import { ExecutionTime } from './interfaces/execution-time';
+import { ExtendedResponse } from './interfaces/extended-response';
 import { FileWrite } from './interfaces/file-write';
 import { FunctionType } from './interfaces/function-type';
 import { HttpClient } from './interfaces/http-client';
 import { ProgressBar } from './interfaces/progress-bar';
-import { JobData, QueueJob, QueueJobStatic } from './interfaces/queue-job';
+import { JobData, JobDataExtended, QueueJob, QueueJobStatic } from './interfaces/queue-job';
 import { ResultItem } from './interfaces/result-item';
 import { Scraper } from './interfaces/scraper';
 import { TYPES } from './interfaces/types';
 
 import { config } from './scraper.config';
 
-
-export interface JobDataExtended extends JobData {
-  url: string;
-}
 
 @injectable()
 export default class Main {
@@ -47,7 +43,9 @@ export default class Main {
     this.url = this.config.urlMap || this.config.urlCore;
     this.selectorString = '';
     this.resultPath = this.config.resultPath || '../build/';
-    this.queue = this.queueJob.tessQueue(this.tressHandler.bind(this));
+    this.queueJob.createQueue(this.tressHandler.bind(this));
+
+    this.queue = this.queueJob.getQueue();
   }
 
 
@@ -115,7 +113,7 @@ export default class Main {
           fullURL = `${this.config.urlCore}${url}`;
         }
 
-        const response: IncomingMessage = await this.httpClient.get(fullURL);
+        const response: ExtendedResponse = await this.httpClient.get(fullURL);
         const { statusCode = 0 } = response;
 
         if (statusCode >= 300 && statusCode < 400) {
@@ -170,7 +168,7 @@ export default class Main {
 
 
   // Метод обрабатывает полученные данные
-  private responseHandler(response: IncomingMessage, url: string): void {
+  private responseHandler(response: ExtendedResponse, url: string): void {
     const { statusCode = 0 } = response;
 
     void this.fileWriter.writeLog({
@@ -182,11 +180,10 @@ export default class Main {
       this.scrapper.start({
         results: this.results,
         excludeURL: this.config.excludeURL,
-        queue: this.queue,
         selectorString: this.selectorString,
         regexp: this.regexp,
+        body: response.body,
         url,
-        response,
       });
     } catch (e) {
       throw new Error(`Parse error on page ${url}\\r\\n Error: ${e as string}`)

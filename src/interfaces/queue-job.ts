@@ -2,6 +2,9 @@ import { FunctionType } from './function-type';
 
 export type JobData = Record<string, string>;
 
+export interface JobDataExtended extends JobData {
+  url: string;
+}
 
 export interface QueueJobStatic {
   readonly started: boolean;
@@ -16,10 +19,10 @@ export interface QueueJobStatic {
   empty(): void;
 }
 
+export type QueueJobWorker = (job: JobData, done: FunctionType) => void;
+
 export interface QueueJob {
-  tessQueue: (
-    worker: (job: JobData, done: FunctionType) => void,
-    concurrency?: number,
-  ) => QueueJobStatic
+  createQueue(worker: QueueJobWorker, concurrency?: number): void;
+  getQueue(): QueueJobStatic;
 }
 
