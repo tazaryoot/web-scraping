@@ -1,5 +1,3 @@
-import { ExecutionTime } from './execution-time';
-
 const TYPES = {
   FileWrite: Symbol.for('FileWrite'),
   Main: Symbol.for('Main'),

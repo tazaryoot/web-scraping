@@ -1,10 +1,10 @@
 import { Container } from 'inversify';
 
-import { ExecutionTimer } from './entities/execution-timer';
-import { FileWriter } from './entities/file-writer';
-import { HttpClientNeedle } from './entities/http-client-needle';
-import { Queue } from './entities/queue';
-import { SiteScrapper } from './entities/site-scrapper';
+import { ExecutionTimerService } from './services/execution-timer.service';
+import { FileWriterService } from './services/file-writer.service';
+import { HttpClientNeedleService } from './services/http-client-needle.service';
+import { Queue } from './services/queue.service';
+import { SiteScrapperService } from './services/site-scrapper.service';
 
 import { ExecutionTime } from './interfaces/execution-time';
 import { FileWrite } from './interfaces/file-write';
@@ -17,11 +17,11 @@ import Main from './main';
 
 const appContainer: Container = new Container();
 
-appContainer.bind<FileWrite>(TYPES.FileWrite).to(FileWriter);
-appContainer.bind<Scraper>(TYPES.Scrapper).to(SiteScrapper);
+appContainer.bind<FileWrite>(TYPES.FileWrite).to(FileWriterService);
+appContainer.bind<Scraper>(TYPES.Scrapper).to(SiteScrapperService);
 appContainer.bind<QueueJob>(TYPES.QueueJob).to(Queue);
-appContainer.bind<HttpClient>(TYPES.HttpClient).to(HttpClientNeedle);
-appContainer.bind<ExecutionTime>(TYPES.ExecutionTime).to(ExecutionTimer);
+appContainer.bind<HttpClient>(TYPES.HttpClient).to(HttpClientNeedleService);
+appContainer.bind<ExecutionTime>(TYPES.ExecutionTime).to(ExecutionTimerService);
 
 appContainer.bind<Main>(TYPES.Main).to(Main);
 

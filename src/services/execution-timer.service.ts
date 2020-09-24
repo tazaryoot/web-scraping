@@ -9,7 +9,7 @@ const perf = require('execution-time');
 
 
 @injectable()
-export class ExecutionTimer implements ExecutionTime {
+export class ExecutionTimerService implements ExecutionTime {
   private executionTime: ExecutionTime;
 
 

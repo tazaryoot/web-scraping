@@ -13,7 +13,7 @@ const cheerio = require('cheerio');
 
 
 @injectable()
-export class SiteScrapper implements Scraper {
+export class SiteScrapperService implements Scraper {
   private count = 0;
   private queuedLinkList: string[] = [];
   private limit = 100;

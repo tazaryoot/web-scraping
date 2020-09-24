@@ -9,7 +9,7 @@ import { ResultItem } from '../interfaces/result-item';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
 @injectable()
-export class FileWriter implements FileWrite {
+export class FileWriterService implements FileWrite {
   private writeStream: WriteStream | undefined;
   private encode: string;
 
@@ -26,10 +26,10 @@ export class FileWriter implements FileWrite {
 
   getTime(short?: boolean): string {
     const date = new Date();
-    let time = `${date.getFullYear()}-${FileWriter.pad(date.getMonth() + 1)}-${FileWriter.pad(date.getDate())}`;
+    let time = `${date.getFullYear()}-${FileWriterService.pad(date.getMonth() + 1)}-${FileWriterService.pad(date.getDate())}`;
 
     if (!short) {
-      time += `T${FileWriter.pad(date.getHours())}:${FileWriter.pad(date.getMinutes())}:${FileWriter.pad(date.getSeconds())}`;
+      time += `T${FileWriterService.pad(date.getHours())}:${FileWriterService.pad(date.getMinutes())}:${FileWriterService.pad(date.getSeconds())}`;
     }
     return time;
   }

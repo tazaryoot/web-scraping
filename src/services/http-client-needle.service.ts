@@ -11,7 +11,7 @@ const needle = require('needle');
 
 
 @injectable()
-export class HttpClientNeedle implements HttpClient {
+export class HttpClientNeedleService implements HttpClient {
   get(url: string, data?: HttpClientBodyData, options?: Record<string, string>, callback?: FunctionType): Promise<IncomingMessage> {
 
     return needle('get', url, data, options, callback) as Promise<IncomingMessage>;
