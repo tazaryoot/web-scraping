@@ -1,8 +1,10 @@
 import { Container } from 'inversify';
+import { ProgressBar } from './interfaces/progress-bar';
 
 import { ExecutionTimerService } from './services/execution-timer.service';
 import { FileWriterService } from './services/file-writer.service';
 import { HttpClientNeedleService } from './services/http-client-needle.service';
+import { ProgressBarService } from './services/progress-bar.service';
 import { Queue } from './services/queue.service';
 import { SiteScrapperService } from './services/site-scrapper.service';
 
@@ -22,6 +24,7 @@ appContainer.bind<Scraper>(TYPES.Scrapper).to(SiteScrapperService);
 appContainer.bind<QueueJob>(TYPES.QueueJob).to(Queue);
 appContainer.bind<HttpClient>(TYPES.HttpClient).to(HttpClientNeedleService);
 appContainer.bind<ExecutionTime>(TYPES.ExecutionTime).to(ExecutionTimerService);
+appContainer.bind<ProgressBar>(TYPES.ProgressBar).to(ProgressBarService).inSingletonScope();
 
 appContainer.bind<Main>(TYPES.Main).to(Main);
 

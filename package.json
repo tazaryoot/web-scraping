@@ -18,6 +18,7 @@
     "execution-time": "^1.4.1",
     "inversify": "^5.0.1",
     "needle": "^2.5.2",
+    "progress": "^2.0.3",
     "reflect-metadata": "^0.1.13",
     "tress": "^1.1.4",
     "yargs": "^16.0.3"

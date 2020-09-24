@@ -5,6 +5,7 @@ const TYPES = {
   QueueJob: Symbol.for('QueueJob'),
   HttpClient: Symbol.for('HttpClient'),
   ExecutionTime: Symbol.for('ExecutionTime'),
+  ProgressBar: Symbol.for('ProgressBar'),
 }
 
 export { TYPES };

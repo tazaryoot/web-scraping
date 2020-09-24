@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
 import { FileWrite } from '../interfaces/file-write';
+import { ProgressBar } from '../interfaces/progress-bar';
 import { ResultTagItem } from '../interfaces/result-tag-item';
 
 import { Scraper } from '../interfaces/scraper';
@@ -21,6 +22,7 @@ export class SiteScrapperService implements Scraper {
 
   constructor(
     @inject(TYPES.FileWrite) private fileWriter: FileWrite,
+    @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
   ) {
     this.fileWriter.startWriteStream('map.txt');
     void this.fileWriter.writeMessageInStream('{');
@@ -35,13 +37,11 @@ export class SiteScrapperService implements Scraper {
       selectorString,
       url,
       excludeURL,
-      progressBar,
       regexp,
     } = params;
 
     const $ = cheerio.load(response.body);
     const area = $('body');
-    let progressValue = 0;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
 
@@ -67,7 +67,7 @@ export class SiteScrapperService implements Scraper {
           void that.fileWriter.writeMessageInStream(`{page: "${link}"},`);
           const jobData = { url: /^\//.test(link) ? link : `/${link}`}
           queue.push(jobData);
-          // progressBar.setTotal(queuedLinkList.length);
+          that.cliProgress.setTotal(that.queuedLinkList.length);
         }
       });
     }
@@ -125,8 +125,6 @@ export class SiteScrapperService implements Scraper {
         }
       }
     });
-
-    progressValue += 1;
   }
 
 }

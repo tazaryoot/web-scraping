@@ -4,23 +4,18 @@ import { inject, injectable, unmanaged } from 'inversify';
 import { Interface as Readline } from 'readline';
 
 import { CliArguments } from './interfaces/cli-arguments';
-import { CliProgress } from './interfaces/cli-progress';
 import { Config } from './interfaces/config';
 import { ExecutionTime } from './interfaces/execution-time';
 import { FileWrite } from './interfaces/file-write';
 import { FunctionType } from './interfaces/function-type';
 import { HttpClient } from './interfaces/http-client';
+import { ProgressBar } from './interfaces/progress-bar';
 import { JobData, QueueJob, QueueJobStatic } from './interfaces/queue-job';
 import { ResultItem } from './interfaces/result-item';
 import { Scraper } from './interfaces/scraper';
 import { TYPES } from './interfaces/types';
 
 import { config } from './scraper.config';
-
-
-/* eslint-disable */
-const cliProgress: CliProgress = require('cli-progress');
-/* eslint-enable */
 
 
 export interface JobDataExtended extends JobData {
@@ -32,7 +27,6 @@ export default class Main {
   private results: ResultItem[] = [];
   private selectorString: string;
   private regexp: RegExp | undefined;
-  // private readonly progressBar: CliProgressBar;
   private readonly resultPath: string;
   private readonly url: string;
   private readonly queue: QueueJobStatic;
@@ -45,11 +39,10 @@ export default class Main {
     @inject(TYPES.QueueJob) private queueJob: QueueJob,
     @inject(TYPES.HttpClient) private httpClient: HttpClient,
     @inject(TYPES.ExecutionTime) private perf: ExecutionTime,
+    @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
     @unmanaged() private argv: CliArguments,
     @unmanaged() private rl: Readline,
   ) {
-    // const { Bar: bar } = cliProgress;
-    // this.progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic) as any;
     this.config = config as Config;
     this.url = this.config.urlMap || this.config.urlCore;
     this.selectorString = '';
@@ -72,6 +65,8 @@ export default class Main {
   // Метод стартует поиск
   async startSearch(): Promise<void> {
     console.info('Starting...');
+
+    this.cliProgress.start(100);
 
     await this.fileWriter.writeLog({
       message: `Start scrapping with selectors ${this.selectorString}`,
@@ -106,6 +101,8 @@ export default class Main {
   // Метод запрашивает страницы из очереди
   private tressHandler (page: JobData, callback: FunctionType): void {
     void (async () => {
+      this.cliProgress.update();
+
       try {
         if (!page?.url) {
           throw new Error(`Parameter page is incorrect.`);
@@ -161,8 +158,12 @@ export default class Main {
       }
 
       this.fileWriter.endWriteStream();
-      // this.progressBar.stop();
+
+      this.cliProgress.setTotal(0);
+      this.cliProgress.stop();
+
       console.warn(`Executing time: ${performance.verboseWords}`);
+
       this.rl.close();
     })();
   }
@@ -180,7 +181,6 @@ export default class Main {
     try {
       this.scrapper.start({
         results: this.results,
-        progressBar: null,
         excludeURL: this.config.excludeURL,
         queue: this.queue,
         selectorString: this.selectorString,
