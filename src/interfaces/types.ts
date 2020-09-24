@@ -6,6 +6,7 @@ const TYPES = {
   HttpClient: Symbol.for('HttpClient'),
   ExecutionTime: Symbol.for('ExecutionTime'),
   ProgressBar: Symbol.for('ProgressBar'),
+  CheckUrl: Symbol.for('CheckUrl'),
 }
 
 export { TYPES };

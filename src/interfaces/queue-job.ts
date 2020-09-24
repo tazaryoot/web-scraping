@@ -22,6 +22,7 @@ export interface QueueJobStatic {
 export type QueueJobWorker = (job: JobData, done: FunctionType) => void;
 
 export interface QueueJob {
+  queuedLinkList: string[];
   createQueue(worker: QueueJobWorker, concurrency?: number): void;
   getQueue(): QueueJobStatic;
 }

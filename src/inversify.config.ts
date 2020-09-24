@@ -1,5 +1,7 @@
 import { Container } from 'inversify';
+import { CheckUrl } from './interfaces/check-url';
 import { ProgressBar } from './interfaces/progress-bar';
+import { CheckUrlService } from './services/check-url.service';
 
 import { ExecutionTimerService } from './services/execution-timer.service';
 import { FileWriterService } from './services/file-writer.service';
@@ -25,6 +27,7 @@ appContainer.bind<HttpClient>(TYPES.HttpClient).to(HttpClientNeedleService);
 appContainer.bind<ExecutionTime>(TYPES.ExecutionTime).to(ExecutionTimerService);
 appContainer.bind<QueueJob>(TYPES.QueueJob).to(Queue).inSingletonScope();
 appContainer.bind<ProgressBar>(TYPES.ProgressBar).to(ProgressBarService).inSingletonScope();
+appContainer.bind<CheckUrl>(TYPES.CheckUrl).to(CheckUrlService).inSingletonScope();
 
 appContainer.bind<Main>(TYPES.Main).to(Main);
 

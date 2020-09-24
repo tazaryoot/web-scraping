@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
+import { CheckUrl } from '../interfaces/check-url';
 import { FileWrite } from '../interfaces/file-write';
 import { ProgressBar } from '../interfaces/progress-bar';
 import { QueueJob, QueueJobStatic } from '../interfaces/queue-job';
@@ -17,7 +18,6 @@ const cheerio = require('cheerio');
 @injectable()
 export class SiteScrapperService implements Scraper {
   private count = 0;
-  private queuedLinkList: string[] = [];
   private limit = 100;
 
 
@@ -25,9 +25,9 @@ export class SiteScrapperService implements Scraper {
     @inject(TYPES.FileWrite) private fileWriter: FileWrite,
     @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
     @inject(TYPES.QueueJob) private queueJob: QueueJob,
+    @inject(TYPES.CheckUrl) private checkUrl: CheckUrl,
   ) {
     this.fileWriter.startWriteStream('map.txt');
-    void this.fileWriter.writeMessageInStream('{');
   }
 
 
@@ -39,6 +39,8 @@ export class SiteScrapperService implements Scraper {
       url,
       excludeURL,
       regexp,
+      urlCore,
+      urlScrapContext,
     } = params;
 
     const $ = cheerio.load(body);
@@ -50,33 +52,38 @@ export class SiteScrapperService implements Scraper {
       let aList = area.find('a');
 
       if (excludeURL) {
-        aList = aList.filter(function () {
+        aList = aList.filter(function() {
           // @ts-ignore
           return !!$(this).attr('href') && !excludeURL.test($(this).attr('href'));
         });
       }
 
-      aList.each(function () {
+      aList = aList.filter(function() {
+        // @ts-ignore
+        return !!$(this).attr('href') && that.checkUrl.check($(this).attr('href'), urlCore, urlScrapContext);
+      })
+
+      aList.each(function() {
         // @ts-ignore
         const link = $(this).attr('href') as string;
 
 
-        if (that.queuedLinkList.indexOf(link) === -1 && (!that.limit || that.count < that.limit)) {
+        if (that.queueJob.queuedLinkList.indexOf(link) === -1 && (!that.limit || that.count < that.limit)) {
           that.count += 1;
 
-          that.queuedLinkList.push(link);
+          that.queueJob.queuedLinkList.push(link);
 
           void that.fileWriter.writeMessageInStream(`{page: "${link}"},`);
 
           const jobData = { url: /^\//.test(link) ? link : `/${link}`}
           queue.push(jobData);
 
-          that.cliProgress.setTotal(that.queuedLinkList.length);
+          that.cliProgress.setTotal(that.queueJob.queuedLinkList.length);
         }
       });
     }
 
-    const itemList = $(selectorString).filter(function () {
+    const itemList = $(selectorString).filter(function() {
       if (!regexp) {
         return true;
       }

@@ -7,4 +7,6 @@ export interface ScrapingParams {
   url: string,
   excludeURL: RegExp,
   regexp?: RegExp,
+  urlCore: string;
+  urlScrapContext?: string;
 }

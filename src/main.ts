@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { inject, injectable, unmanaged } from 'inversify';
 import { Interface as Readline } from 'readline';
 
+import { CheckUrl } from './interfaces/check-url';
 import { CliArguments } from './interfaces/cli-arguments';
 import { Config } from './interfaces/config';
 import { ExecutionTime } from './interfaces/execution-time';
@@ -36,11 +37,12 @@ export default class Main {
     @inject(TYPES.HttpClient) private httpClient: HttpClient,
     @inject(TYPES.ExecutionTime) private perf: ExecutionTime,
     @inject(TYPES.ProgressBar) private cliProgress: ProgressBar,
+    @inject(TYPES.CheckUrl) private checkUrl: CheckUrl,
     @unmanaged() private argv: CliArguments,
     @unmanaged() private rl: Readline,
   ) {
     this.config = config as Config;
-    this.url = this.config.urlMap || this.config.urlCore;
+    this.url = this.config.urlMap || `${this.config.urlCore}${this.config.urlScrapContext || ''}`;
     this.selectorString = '';
     this.resultPath = this.config.resultPath || '../build/';
     this.queueJob.createQueue(this.tressHandler.bind(this));
@@ -109,7 +111,7 @@ export default class Main {
         const { url } = page as JobDataExtended;
         let fullURL = url;
 
-        if (fullURL.indexOf('http') === -1) {
+        if (!fullURL.includes('http')) {
           fullURL = `${this.config.urlCore}${url}`;
         }
 
@@ -176,6 +178,8 @@ export default class Main {
       logLevel: 'inf',
     });
 
+    this.queueJob.queuedLinkList.push(url);
+
     try {
       this.scrapper.start({
         results: this.results,
@@ -183,6 +187,8 @@ export default class Main {
         selectorString: this.selectorString,
         regexp: this.regexp,
         body: response.body,
+        urlCore: this.config.urlCore,
+        urlScrapContext: this.config.urlScrapContext || '/',
         url,
       });
     } catch (e) {

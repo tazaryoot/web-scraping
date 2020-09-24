@@ -7,6 +7,7 @@ export interface ExportSettings {
 export interface Config {
   urlCore: string,
   urlMap: string,
+  urlScrapContext?: string;
   excludeURL: RegExp,
   resultPath?: string;
   exportSettings: ExportSettings;

@@ -9,6 +9,8 @@ const tress = require('tress');
 
 @injectable()
 export class Queue implements QueueJob {
+  queuedLinkList: string[] = [];
+
   private queue: QueueJobStatic;
 
 
