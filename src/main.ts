@@ -13,6 +13,7 @@ import { ProgressBar } from './interfaces/progress-bar';
 import { JobData, JobDataExtended, QueueJob, QueueJobStatic } from './interfaces/queue-job';
 import { ResultItem } from './interfaces/result-item';
 import { Scraper } from './interfaces/scraper';
+import { StdoutHelper } from './interfaces/stdout-helper';
 import { TYPES } from './interfaces/types';
 
 import { config } from './scraper.config';
@@ -36,6 +37,7 @@ export default class Main {
     @inject(TYPES.HttpClient) private httpClientService: HttpClient,
     @inject(TYPES.ExecutionTime) private perfService: ExecutionTime,
     @inject(TYPES.ProgressBar) private cliProgressService: ProgressBar,
+    @inject(TYPES.StdoutHelper) private stdoutHelperService: StdoutHelper,
     @unmanaged() private argv: CliArguments,
     @unmanaged() private rl: Readline,
   ) {
@@ -62,14 +64,15 @@ export default class Main {
 
   // Метод стартует поиск
   async startSearch(): Promise<void> {
-    console.info('Starting...');
-
-    this.cliProgressService.start(100);
+    console.clear()
+    console.info(`Started scraping the site: ${this.config.urlCore}`);
 
     await this.fileWriterService.writeLog({
       message: `Start scrapping with selectors ${this.selectorString}`,
       logLevel: 'inf',
     });
+
+    this.cliProgressService.start(100);
 
     try {
       this.queueHandler();
@@ -159,6 +162,7 @@ export default class Main {
 
       this.cliProgressService.setTotal(0);
 
+      this.stdoutHelperService.clearLine(0);
 
       console.warn(`Executing time: ${performance.verboseWords}`);
 

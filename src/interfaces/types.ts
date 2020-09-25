@@ -7,6 +7,7 @@ const TYPES = {
   ExecutionTime: Symbol.for('ExecutionTime'),
   ProgressBar: Symbol.for('ProgressBar'),
   CheckUrl: Symbol.for('CheckUrl'),
+  StdoutHelper: Symbol.for('StdoutHelper'),
 }
 
 export { TYPES };
