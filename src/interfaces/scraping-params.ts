@@ -6,4 +6,5 @@ export interface ScrapingParams {
   regexp?: RegExp,
   urlCore: string;
   urlScrapContext?: string;
+  limit: number;
 }

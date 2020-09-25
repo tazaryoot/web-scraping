@@ -161,10 +161,6 @@ export default class Main {
       });
       await this.safetyWriteResult();
 
-      if (this.argv.exporting) {
-        console.info('Exporting...');
-      }
-
       this.fileWriterService.endWriteStream();
 
       this.cliProgressService.setTotal(0);
@@ -201,6 +197,7 @@ export default class Main {
         body: response.body,
         urlCore: this.config.urlCore,
         urlScrapContext: this.config.urlScrapContext || '/',
+        limit: this.argv.limit || 0,
         url,
       });
     } catch (e) {

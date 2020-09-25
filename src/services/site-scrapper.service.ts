@@ -21,7 +21,6 @@ const cheerio = require('cheerio');
 @injectable()
 export class SiteScrapperService implements Scraper {
   private count = 0;
-  private limit = 0;
 
 
   constructor(
@@ -44,6 +43,7 @@ export class SiteScrapperService implements Scraper {
       regexp,
       urlCore,
       urlScrapContext,
+      limit,
     } = params;
 
     const $ = cheerio.load(body);
@@ -52,7 +52,7 @@ export class SiteScrapperService implements Scraper {
     const queue: QueueJobStatic = this.queueJobService.getQueue();
     const results: ResultItem[] = this.resultStorageService.getDataByKey('result');
 
-    if (!this.limit || this.count < this.limit) {
+    if (!limit || this.count < limit) {
       let aList = area.find('a');
 
       if (excludeURL) {
@@ -72,7 +72,7 @@ export class SiteScrapperService implements Scraper {
         const link = $(this).attr('href') as string;
 
 
-        if (that.queueJobService.queuedLinkList.indexOf(link) === -1 && (!that.limit || that.count < that.limit)) {
+        if (that.queueJobService.queuedLinkList.indexOf(link) === -1 && (!limit || that.count < limit)) {
           that.count += 1;
 
           that.queueJobService.queuedLinkList.push(link);
@@ -145,7 +145,7 @@ export class SiteScrapperService implements Scraper {
     });
 
     this.resultStorageService.setDataByKey('result', results);
-    that.resultStorageService.setDataByKey('itemsCount', this.count);
+    this.resultStorageService.setDataByKey('itemsCount', this.count);
   }
 
 }
