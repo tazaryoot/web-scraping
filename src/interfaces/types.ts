@@ -8,6 +8,7 @@ const TYPES = {
   ProgressBar: Symbol.for('ProgressBar'),
   CheckUrl: Symbol.for('CheckUrl'),
   StdoutHelper: Symbol.for('StdoutHelper'),
+  ResultStorage: Symbol.for('ResultStorage'),
 }
 
 export { TYPES };

@@ -1,13 +1,16 @@
 import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
+
 import { CheckUrl } from '../interfaces/check-url';
 import { FileWrite } from '../interfaces/file-write';
 import { ProgressBar } from '../interfaces/progress-bar';
 import { QueueJob, QueueJobStatic } from '../interfaces/queue-job';
+import { ResultItem } from '../interfaces/result-item';
+import { ResultStorage } from '../interfaces/result-storage';
 import { ResultTagItem } from '../interfaces/result-tag-item';
-
 import { Scraper } from '../interfaces/scraper';
 import { ScrapingParams } from '../interfaces/scraping-params';
+import { Storage } from '../interfaces/storage';
 import { TYPES } from '../interfaces/types';
 
 
@@ -18,7 +21,7 @@ const cheerio = require('cheerio');
 @injectable()
 export class SiteScrapperService implements Scraper {
   private count = 0;
-  private limit = 100;
+  private limit = 0;
 
 
   constructor(
@@ -26,6 +29,7 @@ export class SiteScrapperService implements Scraper {
     @inject(TYPES.ProgressBar) private cliProgressService: ProgressBar,
     @inject(TYPES.QueueJob) private queueJobService: QueueJob,
     @inject(TYPES.CheckUrl) private checkUrlService: CheckUrl,
+    @inject(TYPES.ResultStorage) private resultStorageService: Storage<ResultStorage>,
   ) {
     this.fileWriterService.startWriteStream('map.txt');
   }
@@ -34,7 +38,6 @@ export class SiteScrapperService implements Scraper {
   start(params: ScrapingParams): void {
     const {
       body,
-      results,
       selectorString,
       url,
       excludeURL,
@@ -47,6 +50,7 @@ export class SiteScrapperService implements Scraper {
     const area = $('body');
     const that = this;
     const queue: QueueJobStatic = this.queueJobService.getQueue();
+    const results: ResultItem[] = this.resultStorageService.getDataByKey('result');
 
     if (!this.limit || this.count < this.limit) {
       let aList = area.find('a');
@@ -139,6 +143,9 @@ export class SiteScrapperService implements Scraper {
         }
       }
     });
+
+    this.resultStorageService.setDataByKey('result', results);
+    that.resultStorageService.setDataByKey('itemsCount', this.count);
   }
 
 }

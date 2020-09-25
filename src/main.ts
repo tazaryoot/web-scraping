@@ -12,8 +12,10 @@ import { HttpClient } from './interfaces/http-client';
 import { ProgressBar } from './interfaces/progress-bar';
 import { JobData, JobDataExtended, QueueJob, QueueJobStatic } from './interfaces/queue-job';
 import { ResultItem } from './interfaces/result-item';
+import { ResultStorage } from './interfaces/result-storage';
 import { Scraper } from './interfaces/scraper';
 import { StdoutHelper } from './interfaces/stdout-helper';
+import { Storage } from './interfaces/storage';
 import { TYPES } from './interfaces/types';
 
 import { config } from './scraper.config';
@@ -38,6 +40,7 @@ export default class Main {
     @inject(TYPES.ExecutionTime) private perfService: ExecutionTime,
     @inject(TYPES.ProgressBar) private cliProgressService: ProgressBar,
     @inject(TYPES.StdoutHelper) private stdoutHelperService: StdoutHelper,
+    @inject(TYPES.ResultStorage) private resultStorageService: Storage<ResultStorage>,
     @unmanaged() private argv: CliArguments,
     @unmanaged() private rl: Readline,
   ) {
@@ -65,7 +68,8 @@ export default class Main {
   // Метод стартует поиск
   async startSearch(): Promise<void> {
     console.clear()
-    console.info(`Started scraping the site: ${this.config.urlCore}`);
+    console.info(`Started scraping: ${this.config.urlCore}`);
+    console.info(`Selectors: ${this.selectorString}`);
 
     await this.fileWriterService.writeLog({
       message: `Start scrapping with selectors ${this.selectorString}`,
@@ -127,6 +131,9 @@ export default class Main {
         } else if (statusCode !== 200) {
           throw new Error(`Status: ${statusCode as number}. Get page ${fullURL} is failed.`);
         } else {
+          const pageCount = this.resultStorageService.getDataByKey('pageCount');
+          this.resultStorageService.setDataByKey('pageCount', pageCount + 1);
+
           this.responseHandler(response, fullURL)
         }
       }
@@ -155,7 +162,7 @@ export default class Main {
       await this.safetyWriteResult();
 
       if (this.argv.exporting) {
-        console.log('Exporting...');
+        console.info('Exporting...');
       }
 
       this.fileWriterService.endWriteStream();
@@ -164,7 +171,11 @@ export default class Main {
 
       this.stdoutHelperService.clearLine(0);
 
-      console.warn(`Executing time: ${performance.verboseWords}`);
+      console.clear();
+      console.info('Scraping finished.');
+      console.info(`Pages has been checked: ${this.resultStorageService.getDataByKey('pageCount')}`);
+      console.info(`Element found: ${this.resultStorageService.getDataByKey('itemsCount')}`)
+      console.info(`Executing time: ${performance.verboseWords}`);
 
       this.rl.close();
     })();
@@ -184,7 +195,6 @@ export default class Main {
 
     try {
       this.scrapperService.start({
-        results: this.results,
         excludeURL: this.config.excludeURL,
         selectorString: this.selectorString,
         regexp: this.regexp,
@@ -225,7 +235,7 @@ export default class Main {
 
   private async safetyWriteResult(): Promise<void> {
     try {
-      await this.fileWriterService.writeResultsFile(this.results, this.resultPath);
+      await this.fileWriterService.writeResultsFile(this.resultStorageService.getDataByKey('result'), this.resultPath);
     } catch (e) {
       await this.fileWriterService.writeLog({
         message: `Cannot write result\r\n Error: ${e as string}`,

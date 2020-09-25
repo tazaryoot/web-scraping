@@ -6,8 +6,10 @@ import { FileWrite } from './interfaces/file-write';
 import { HttpClient } from './interfaces/http-client';
 import { ProgressBar } from './interfaces/progress-bar';
 import { QueueJob } from './interfaces/queue-job';
+import { ResultStorage } from './interfaces/result-storage';
 import { Scraper } from './interfaces/scraper';
 import { StdoutHelper } from './interfaces/stdout-helper';
+import { Storage } from './interfaces/storage';
 import { TYPES } from './interfaces/types';
 
 import Main from './main';
@@ -18,6 +20,7 @@ import { FileWriterService } from './services/file-writer.service';
 import { HttpClientNeedleService } from './services/http-client-needle.service';
 import { ProgressBarService } from './services/progress-bar.service';
 import { Queue } from './services/queue.service';
+import { ResultStorageService } from './services/result-storage.service';
 import { SiteScrapperService } from './services/site-scrapper.service';
 import { StdoutHelperService } from './services/stdout-helper.service';
 
@@ -28,10 +31,11 @@ appContainer.bind<FileWrite>(TYPES.FileWrite).to(FileWriterService);
 appContainer.bind<Scraper>(TYPES.Scrapper).to(SiteScrapperService);
 appContainer.bind<HttpClient>(TYPES.HttpClient).to(HttpClientNeedleService);
 appContainer.bind<ExecutionTime>(TYPES.ExecutionTime).to(ExecutionTimerService);
+appContainer.bind<StdoutHelper>(TYPES.StdoutHelper).to(StdoutHelperService);
 appContainer.bind<QueueJob>(TYPES.QueueJob).to(Queue).inSingletonScope();
 appContainer.bind<ProgressBar>(TYPES.ProgressBar).to(ProgressBarService).inSingletonScope();
 appContainer.bind<CheckUrl>(TYPES.CheckUrl).to(CheckUrlService).inSingletonScope();
-appContainer.bind<StdoutHelper>(TYPES.StdoutHelper).to(StdoutHelperService)
+appContainer.bind<Storage<ResultStorage>>(TYPES.ResultStorage).to(ResultStorageService).inSingletonScope();
 
 appContainer.bind<Main>(TYPES.Main).to(Main);
 
